@@ -2,63 +2,127 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة تحكم المدير - صفقات العملات</title>
-    <style>
-        body { font-family: Tahoma, sans-serif; background: #f4f4f9; padding: 20px; direction: rtl; }
-        .container { max-width: 600px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: auto; }
-        input, button { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { background: #28a745; color: white; font-weight: bold; cursor: pointer; }
-        button:hover { background: #218838; }
-        h2 { text-align: center; color: #333; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم المدير - صفقات العملات الرقمية</title>
+    <!-- استدعاء مكتبة Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Tahoma, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; direction: rtl; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1, h2 { color: #333; text-align: center; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
+        button:hover { background-color: #218838; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background-color: #007bff; color: white; }
+    </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>لوحة التحكم - إضافة صفقة جديدة</h2>
-    <form id="signalForm">
-        <label>سعر الدخول (Entry Price):</label>
-        <input type="number" step="any" id="entry_price" required>
+    <h1>لوحة تحكم المدير</h1>
+    
+    <!-- قسم إضافة صفقة جديدة -->
+    <div style="background: #e9ecef; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+        <h2>إضافة صفقة جديدة</h2>
+        <div class="form-group">
+            <label>العملة / الزوج</label>
+            <input type="text" id="pair" placeholder="مثال: BTC/USDT">
+        </div>
+        <div class="form-group">
+            <label>سعر الدخول</label>
+            <input type="text" id="entry_price" placeholder="مثال: 65000">
+        </div>
+        <div class="form-group">
+            <label>الأهداف</label>
+            <input type="text" id="targets" placeholder="مثال: 67000, 69000">
+        </div>
+        <div class="form-group">
+            <label>وقف الخسارة</label>
+            <input type="text" id="stop_loss" placeholder="مثال: 63000">
+        </div>
+        <button onclick="addSignal()">نشر الصفقة</button>
+    </div>
 
-        <label>هدف الربح (Take Profit):</label>
-        <input type="number" step="any" id="take_profit" required>
-
-        <label>وقف الخسارة (Stop Loss):</label>
-        <input type="number" step="any" id="stop_loss" required>
-
-        <label>الإطار الزمني (Timeframe):</label>
-        <input type="text" id="timeframe" placeholder="مثال: 1h أو 4h" required>
-
-        <button type="submit">إرسال الصفقة للمستخدمين</button>
-    </form>
+    <!-- جدول عرض الصفقات الحالية -->
+    <h2>الصفقة المسجلة</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>الزوج</th>
+                <th>سعر الدخول</th>
+                <th>الأهداف</th>
+                <th>وقف الخسارة</th>
+            </tr>
+        </thead>
+        <tbody id="signalsTableBody">
+            <!-- سيتم تعبئتها تلقائياً -->
+        </tbody>
+    </table>
 </div>
 
 <script>
+    // ضع بيانات مشروعك هنا (Supabase URL & Anon/Publishable Key)
     const SUPABASE_URL = 'https://gdsnaivwmdbuqktzrbin.supabase.co/rest/v1/';
     const SUPABASE_ANON_KEY = 'sb_publishable_VbgMS_Y_oNs8rbMhVs1Tpg_9GJbP-gl';
     
-    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    document.getElementById('signalForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
+    async function addSignal() {
+        const pair = document.getElementById('pair').value;
+        const entry_price = document.getElementById('entry_price').value;
+        const targets = document.getElementById('targets').value;
+        const stop_loss = document.getElementById('stop_loss').value;
 
-        const entry_price = parseFloat(document.getElementById('entry_price').value);
-        const take_profit = parseFloat(document.getElementById('take_profit').value);
-        const stop_loss = parseFloat(document.getElementById('stop_loss').value);
-        const timeframe = document.getElementById('timeframe').value;
+        if (!pair) {
+            alert('الرجاء إدخال اسم الزوج على الأقل');
+            return;
+        }
 
-        const { data, error } = await _supabase
+        const { error } = await supabaseClient
             .from('signals')
-            .insert([{ entry_price, take_profit, stop_loss, timeframe }]);
+            .insert([{ pair, entry_price, targets, stop_loss }]);
 
         if (error) {
-            alert('حدث خطأ: ' + error.message);
+            alert('حدث خطأ أثناء النشر: ' + error.message);
         } else {
-            alert('تم إضافة الصفقة بنجاح!');
-            document.getElementById('signalForm').reset();
+            alert('تم نشر الصفقة بنجاح!');
+            loadSignals();
         }
-    });
+    }
+
+    async function loadSignals() {
+        const { data, error } = await supabaseClient
+            .from('signals')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('خطأ في جلب الصفقات:', error.message);
+            return;
+        }
+
+        const tbody = document.getElementById('signalsTableBody');
+        tbody.innerHTML = '';
+
+        if (data) {
+            data.forEach(sig => {
+                const row = `<tr>
+                    <td>${sig.pair || ''}</td>
+                    <td>${sig.entry_price || ''}</td>
+                    <td>${sig.targets || ''}</td>
+                    <td>${sig.stop_loss || ''}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+    }
+
+    // جلب الصفقات عند فتح الصفحة
+    loadSignals();
 </script>
 
 </body>
