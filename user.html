@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Crypto Albelhoushi - التوصيات الحية</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --card-bg: #131c2e;
+            --accent-gold: #f59e0b;
+            --green: #10b981;
+            --red: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { user-select: none; -webkit-user-select: none; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark); color: var(--text-main);
+            margin: 0; padding: 12px; padding-bottom: 70px;
+        }
+        .card {
+            background-color: var(--card-bg); border-radius: 16px; padding: 16px; margin-bottom: 16px;
+            border: 1px solid #1e293b; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; background: rgba(245,158,11,0.15); color: var(--accent-gold); border: 1px solid var(--accent-gold); }
+        .chart-box { height: 260px; border-radius: 10px; overflow: hidden; margin-top: 10px; }
+        .dev-footer {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: #0f172a; border-top: 1px solid #1e293b;
+            text-align: center; padding: 10px; font-size: 0.8rem;
+            color: var(--accent-gold); font-weight: bold; z-index: 1000;
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <div class="card" style="text-align: center;">
+        <h2 style="margin:0; color:var(--accent-gold);">⚡ Crypto Albelhoushi</h2>
+        <div id="userBadge" class="badge" style="margin-top: 8px;">بث الصفقات الحية المباشر</div>
+    </div>
+
+    <div id="signalsFeed">جاري تحميل الصفقات الحية...</div>
+
+    <div class="dev-footer">
+        حقوق التطوير محفوظة للمطور: وليد تركي الحمد ©
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://gdsnaivwndtuqktzrbin.supabase.co';
+        const SUPABASE_KEY = 'Sb_publishable_VbgMS_Y_oNs8rbMhVs1Tpg_9GJbP-gl';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function fetchSignals() {
+            const feed = document.getElementById('signalsFeed');
+            let { data: signals, error } = await supabaseClient.from('signals').select('*').order('created_at', { ascending: false });
+            
+            if (error || !signals || signals.length === 0) {
+                feed.innerHTML = '<div class="card" style="text-align:center; color:var(--text-muted);">بانتظار إرسال صفقات جديدة من المنظومة الذكية...</div>';
+                return;
+            }
+
+            feed.innerHTML = '';
+            signals.forEach((sig, index) => {
+                let cardId = 'tv-chart-' + index;
+                let symbol = sig.symbol || 'BTC/USDT';
+                feed.innerHTML += `
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #1e293b; padding-bottom:8px; margin-bottom:10px;">
+                            <span style="font-weight:bold; font-size:1.1rem; color:var(--accent-gold);">${symbol}</span>
+                            <span style="padding:4px 10px; border-radius:6px; font-size:0.8rem; font-weight:bold; background:rgba(16,185,129,0.2); color:var(--green);">صفقة نشطة</span>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.85rem; margin-bottom:10px;">
+                            <div style="background:rgba(15,23,42,0.6); padding:8px; border-radius:6px;">سعر الدخول: <b>${sig.entry_price || '--'}</b></div>
+                            <div style="background:rgba(15,23,42,0.6); padding:8px; border-radius:6px;">وقف الخسارة: <b style="color:var(--red);">${sig.stop_loss || '--'}</b></div>
+                        </div>
+                        <div style="background:rgba(15,23,42,0.6); padding:8px; border-radius:6px; font-size:0.85rem; margin-bottom:10px;">الأهداف: <b style="color:var(--green);">${sig.take_profit || '--'}</b></div>
+                        <div style="background:rgba(59,130,246,0.1); border-right:3px solid #3b82f6; padding:8px; border-radius:4px; font-size:0.8rem; color:#93c5fd;">الفريم والتحليل: ${sig.timeframe || '15M'}</div>
+                        <div id="${cardId}" class="chart-box"></div>
+                    </div>
+                `;
+                
+                setTimeout(() => {
+                    new TradingView.widget({
+                        "autosize": true,
+                        "symbol": "BINANCE:" + symbol.replace('/', ''),
+                        "interval": "15",
+                        "theme": "dark",
+                        "style": "1",
+                        "locale": "ar",
+                        "enable_publishing": false,
+                        "hide_side_toolbar": true,
+                        "container_id": cardId
+                    });
+                }, 100);
+            });
+        }
+
+        // تحديث تلقائي فوري عند إضافة أي صفقة جديدة لقاعدة البيانات
+        supabaseClient.channel('public:signals')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'signals' }, payload => {
+                fetchSignals();
+            })
+            .subscribe();
+
+        fetchSignals();
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key == 'PrintScreen') {
+                navigator.clipboard.writeText('');
+                alert('عذراً، محتوى هذا التطبيق محمي ضد التقاط الشاشة أو المشاركة!');
+            }
+        });
+    </script>
+</body>
+</html>
