@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Crypto Albelhoushi - لوحة الإدارة التلقائية</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-gold: #f59e0b;
+            --green: #10b981;
+            --red: #ef4444;
+            --text-color: #f8fafc;
+        }
+        * { user-select: none; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color); color: var(--text-color);
+            margin: 0; padding: 12px; padding-bottom: 60px;
+        }
+        .card { background-color: var(--card-bg); padding: 16px; border-radius: 14px; margin-bottom: 16px; border: 1px solid #334155; }
+        input, select, textarea, button {
+            width: 100%; padding: 12px; margin: 6px 0; border-radius: 8px;
+            border: 1px solid #475569; background-color: #0f172a; color: white; font-size: 0.9rem;
+        }
+        button { background-color: var(--accent-gold); color: #000; font-weight: bold; cursor: pointer; border: none; }
+        .btn-ai { background: linear-gradient(135deg, #a855f7, #6366f1); color: #fff; }
+        .dev-footer {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: #0f172a; border-top: 1px solid #334155;
+            text-align: center; padding: 8px; font-size: 0.8rem;
+            color: var(--accent-gold); font-weight: bold; z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card" style="text-align: center;">
+        <h2 style="margin:0; color:var(--accent-gold);">⚙️ لوحة التحكم الآلية والذكية</h2>
+        <p style="color: #94a3b8; font-size: 0.8rem; margin-top: 5px;">Crypto Albelhoushi | إدارة الصفقات الشاملة</p>
+    </div>
+
+    <div class="card">
+        <h3 style="color:var(--accent-gold); margin-top:0;">🤖 توليد وتحليل ذكي للعملات</h3>
+        <label style="font-size: 0.85rem; color: #94a3b8;">اختر العملة المطلوبة:</label>
+        <select id="aiPair">
+            <option value="BTC/USDT">Bitcoin (BTC/USDT)</option>
+            <option value="ETH/USDT">Ethereum (ETH/USDT)</option>
+            <option value="SOL/USDT">Solana (SOL/USDT)</option>
+            <option value="BNB/USDT">Binance Coin (BNB/USDT)</option>
+            <option value="XRP/USDT">Ripple (XRP/USDT)</option>
+            <option value="ADA/USDT">Cardano (ADA/USDT)</option>
+            <option value="DOGE/USDT">Dogecoin (DOGE/USDT)</option>
+            <option value="AVAX/USDT">Avalanche (AVAX/USDT)</option>
+            <option value="LINK/USDT">Chainlink (LINK/USDT)</option>
+            <option value="DOT/USDT">Polkadot (DOT/USDT)</option>
+        </select>
+        <button class="btn-ai" onclick="runAI()">⚡ تجهيز الصفقة بالذكاء الاصطناعي</button>
+    </div>
+
+    <div class="card">
+        <h3 style="color:var(--accent-gold); margin-top:0;">🚀 نشر الصفقة للمستخدمين فوراً</h3>
+        <input type="text" id="symbol" placeholder="الزوج (مثال: BTC/USDT)">
+        <input type="text" id="entry" placeholder="سعر الدخول">
+        <input type="text" id="targets" placeholder="الأهداف (Take Profit)">
+        <input type="text" id="stopLoss" placeholder="وقف الخسارة (Stop Loss)">
+        <input type="text" id="timeframe" placeholder="الفريم والتحليل (Timeframe)">
+        <button onclick="publishSignal()">📢 نشر وتعميم الصفقة للجميع</button>
+    </div>
+
+    <div class="dev-footer">
+        حقوق التطوير محفوظة للمطور: وليد تركي الحمد ©
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://gdsnaivwndtuqktzrbin.supabase.co';
+        const SUPABASE_KEY = 'Sb_publishable_VbgMS_Y_oNs8rbMhVs1Tpg_9GJbP-gl';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        function runAI() {
+            let pair = document.getElementById('aiPair').value;
+            let base = 100;
+            if (pair.includes('BTC')) base = 68000;
+            else if (pair.includes('ETH')) base = 2650;
+            else if (pair.includes('SOL')) base = 160;
+            else if (pair.includes('BNB')) base = 600;
+            else if (pair.includes('XRP')) base = 0.60;
+            else if (pair.includes('ADA')) base = 0.45;
+            else if (pair.includes('DOGE')) base = 0.12;
+            else if (pair.includes('AVAX')) base = 25;
+            else if (pair.includes('LINK')) base = 15;
+            else if (pair.includes('DOT')) base = 6;
+
+            document.getElementById('symbol').value = pair;
+            document.getElementById('entry').value = (base * 0.995).toFixed(2);
+            document.getElementById('targets').value = `${(base * 1.015).toFixed(2)}, ${(base * 1.03).toFixed(2)}`;
+            document.getElementById('stopLoss').value = (base * 0.985).toFixed(2);
+            document.getElementById('timeframe').value = '15M / SMC Structure';
+            alert('✅ تم توليد بيانات الصفقة للعملة المختارة بنجاح!');
+        }
+
+        async function publishSignal() {
+            let symbol = document.getElementById('symbol').value;
+            let entry_price = document.getElementById('entry').value;
+            let take_profit = document.getElementById('targets').value;
+            let stop_loss = document.getElementById('stopLoss').value;
+            let timeframe = document.getElementById('timeframe').value;
+
+            if(!entry_price || !symbol) {
+                alert('الرجاء اختيار العملة وملء البيانات');
+                return;
+            }
+
+            let { error } = await supabaseClient.from('signals').insert([{ symbol, entry_price, take_profit, stop_loss, timeframe }]);
+            if (error) {
+                alert('خطأ أثناء النشر: ' + error.message);
+            } else {
+                alert('🚀 تم نشر الصفقة بنجاح وظهرت في تطبيق المستخدمين مباشرة!');
+                document.getElementById('symbol').value = '';
+                document.getElementById('entry').value = '';
+                document.getElementById('targets').value = '';
+                document.getElementById('stopLoss').value = '';
+                document.getElementById('timeframe').value = '';
+            }
+        }
+    </script>
+</body>
+</html>
