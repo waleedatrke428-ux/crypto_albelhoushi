@@ -3,93 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto Albelhoushi - لوحة الإدارة الشاملة</title>
+    <title>Crypto Albelhoushi - المنصة الآمنة</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <style>
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
+            --bg-dark: #090d16;
+            --card-bg: #131c2e;
             --accent-gold: #f59e0b;
             --green: #10b981;
             --red: #ef4444;
-            --text-color: #f8fafc;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
         }
-        * { user-select: none; box-sizing: border-box; }
+        * { user-select: none; -webkit-user-select: none; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color); color: var(--text-color);
+            background-color: var(--bg-dark); color: var(--text-main);
             margin: 0; padding: 12px; padding-bottom: 70px;
         }
-        .card { background-color: var(--card-bg); padding: 16px; border-radius: 14px; margin-bottom: 16px; border: 1px solid #334155; }
-        input, select, textarea, button {
+        .card {
+            background-color: var(--card-bg); border-radius: 16px; padding: 16px; margin-bottom: 16px;
+            border: 1px solid #1e293b; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        input, button {
             width: 100%; padding: 12px; margin: 6px 0; border-radius: 8px;
             border: 1px solid #475569; background-color: #0f172a; color: white; font-size: 0.9rem;
         }
         button { background-color: var(--accent-gold); color: #000; font-weight: bold; cursor: pointer; border: none; }
-        .btn-ai { background: linear-gradient(135deg, #a855f7, #6366f1); color: #fff; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; background: rgba(245,158,11,0.15); color: var(--accent-gold); border: 1px solid var(--accent-gold); }
+        .chart-box { height: 260px; border-radius: 10px; overflow: hidden; margin-top: 10px; }
+        .hidden { display: none !important; }
         .dev-footer {
             position: fixed; bottom: 0; left: 0; right: 0;
-            background: #0f172a; border-top: 1px solid #334155;
-            text-align: center; padding: 8px; font-size: 0.8rem;
+            background: #0f172a; border-top: 1px solid #1e293b;
+            text-align: center; padding: 10px; font-size: 0.8rem;
             color: var(--accent-gold); font-weight: bold; z-index: 1000;
         }
     </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
 
-    <div class="card" style="text-align: center;">
-        <h2 style="margin:0; color:var(--accent-gold);">⚙️ لوحة الإدارة الذكية والبورصات</h2>
-        <p style="color: #94a3b8; font-size: 0.8rem; margin-top: 5px;">Crypto Albelhoushi</p>
+    <!-- شاشة تسجيل الدخول وإنشاء الحساب -->
+    <div id="authScreen" class="card" style="max-width: 400px; margin: 40px auto; text-align: center;">
+        <h2 style="color:var(--accent-gold);">⚡ Crypto Albelhoushi</h2>
+        <p style="font-size: 0.85rem; color:var(--text-muted);">أنشئ حساباً واستمتع بـ 5 أيام تجريبية مجانية</p>
+        <input type="email" id="userEmail" placeholder="البريد الإلكتروني">
+        <input type="password" id="userPass" placeholder="كلمة المرور">
+        <button onclick="handleAuth()">تسجيل / إنشاء حساب جديد</button>
     </div>
 
-    <!-- قسم إرسال الصفقات التلقائي -->
-    <div class="card">
-        <h3 style="color:var(--accent-gold); margin-top:0;">🤖 نظام توليد الصفقات الشامل</h3>
-        <label style="font-size: 0.85rem; color: #94a3b8;">اختر العملة (شامل جميع عملات السوق):</label>
-        <select id="aiPair">
-            <optgroup label="العملات الرئيسية">
-                <option value="BTC/USDT">Bitcoin (BTC/USDT)</option>
-                <option value="ETH/USDT">Ethereum (ETH/USDT)</option>
-                <option value="SOL/USDT">Solana (SOL/USDT)</option>
-                <option value="BNB/USDT">Binance Coin (BNB/USDT)</option>
-                <option value="XRP/USDT">Ripple (XRP/USDT)</option>
-            </optgroup>
-            <optgroup label="العملات البديلة والشهيرة">
-                <option value="ADA/USDT">Cardano (ADA/USDT)</option>
-                <option value="DOGE/USDT">Dogecoin (DOGE/USDT)</option>
-                <option value="AVAX/USDT">Avalanche (AVAX/USDT)</option>
-                <option value="LINK/USDT">Chainlink (LINK/USDT)</option>
-                <option value="DOT/USDT">Polkadot (DOT/USDT)</option>
-                <option value="MATIC/USDT">Polygon (MATIC/USDT)</option>
-                <option value="LTC/USDT">Litecoin (LTC/USDT)</option>
-                <option value="UNI/USDT">Uniswap (UNI/USDT)</option>
-                <option value="NEAR/USDT">Near Protocol (NEAR/USDT)</option>
-                <option value="ATOM/USDT">Cosmos (ATOM/USDT)</option>
-            </optgroup>
-        </select>
-        <button class="btn-ai" onclick="runAI()">⚡ توليد صفقة ذكية وتحديث الأهداف</button>
-        
-        <input type="text" id="symbol" placeholder="الزوج (مثال: BTC/USDT)">
-        <input type="text" id="entry" placeholder="سعر الدخول">
-        <input type="text" id="targets" placeholder="الأهداف (TP1, TP2, TP3)">
-        <input type="text" id="stopLoss" placeholder="وقف الخسارة (Stop Loss)">
-        <input type="text" id="timeframe" placeholder="التحليل والفريم">
-        <button onclick="publishSignal()">📢 نشر الصفقة الفوري للمستخدمين</button>
+    <!-- تطبيق الصفقات المحمي -->
+    <div id="appScreen" class="hidden">
+        <div class="card" style="text-align: center;">
+            <h2 style="margin:0; color:var(--accent-gold);">⚡ التوصيات الحية المباشرة</h2>
+            <div id="subStatus" class="badge" style="margin-top: 8px;">حالة الاشتراك: نشط (تجريبي)</div>
+        </div>
+
+        <div id="signalsFeed">جاري تحميل الصفقات...</div>
     </div>
 
-    <!-- جدول مواعيد البورصات العالمية -->
-    <div class="card">
-        <h3 style="color:var(--accent-gold); margin-top:0;">🌐 مواعيد البورصات العالمية</h3>
-        <div style="font-size:0.85rem; line-height:1.6; color:#cbd5e1;">
-            <p>🇺🇸 <b>بورصة نيويورك (NYSE):</b> فتح 04:30 عصراً - إغلاق 11:00 مساءً</p>
-            <p>🇬🇧 <b>بورصة لندن (LSE):</b> فتح 10:00 صباحاً - إغلاق 06:30 مساءً</p>
-            <p>🇯🇵 <b>بورصة طوكيو (TSE):</b> فتح 03:00 ص - إغلاق 09:00 ص</p>
-            <p>🇦🇺 <b>بورصة سيدني:</b> فتح 01:00 ص - إغلاق 07:00 ص</p>
+    <!-- نافذة تنبيه الاشتراك المدفوع بعد انتهاء التجربة -->
+    <div id="paywallModal" class="hidden card" style="border: 2px solid var(--accent-gold); text-align: center;">
+        <h3 style="color: var(--accent-gold);">انتهت فترة التجربة المجانية (5 أيام)</h3>
+        <p style="font-size: 0.9rem; line-height: 1.6;">لتفعيل اشتراكك والاستمرار في تلقي الصفقات الفورية، يرجى التواصل مع الإدارة وطرق الدفع المتاحة:</p>
+        <div style="background: rgba(15,23,42,0.6); padding: 10px; border-radius: 8px; text-align: right; font-size: 0.85rem; margin-bottom: 10px;">
+            <p>🇸🇾 <b>داخل سوريا:</b> سيريتزل كاش / حوالة محلية</p>
+            <p>🌍 <b>خارج سوريا:</b> USDT (TRC20) أو تحويل بنكي</p>
+            <p style="color: var(--accent-gold);">رقم الحساب / المعرف للتواصل: @Albelhoushi_Admin</p>
         </div>
     </div>
 
     <div class="dev-footer">
-        حقوق التطوير محفوظة للمطور: وليد تركي الحمد ©
+        حقوق التطوير للمطور: وليد تركي الحمد ©
     </div>
 
     <script>
@@ -97,53 +83,105 @@
         const SUPABASE_KEY = 'Sb_publishable_VbgMS_Y_oNs8rbMhVs1Tpg_9GJbP-gl';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        function runAI() {
-            let pair = document.getElementById('aiPair').value;
-            let base = 100;
-            if (pair.includes('BTC')) base = 68000;
-            else if (pair.includes('ETH')) base = 2650;
-            else if (pair.includes('SOL')) base = 160;
-            else if (pair.includes('BNB')) base = 600;
-            else if (pair.includes('XRP')) base = 0.60;
-            else if (pair.includes('ADA')) base = 0.45;
-            else if (pair.includes('DOGE')) base = 0.12;
-            else if (pair.includes('AVAX')) base = 25;
-            else if (pair.includes('LINK')) base = 15;
-            else base = 10;
-
-            document.getElementById('symbol').value = pair;
-            document.getElementById('entry').value = (base * 0.995).toFixed(2);
-            document.getElementById('targets').value = `الهدف 1: ${(base * 1.015).toFixed(2)} | الهدف 2: ${(base * 1.03).toFixed(2)} | الهدف 3: ${(base * 1.05).toFixed(2)}`;
-            document.getElementById('stopLoss').value = (base * 0.98).toFixed(2);
-            document.getElementById('timeframe').value = '15M / تحليل موجي ذكي';
-            alert('✅ تم توليد الصفقة وتحليلها آلياً!');
+        // التحقق من وجود تسجيل دخول مسبق
+        window.onload = function() {
+            let savedUser = localStorage.getItem('albelhoushi_user');
+            if (savedUser) {
+                document.getElementById('authScreen').classList.add('hidden');
+                document.getElementById('appScreen').classList.remove('hidden');
+                initApp();
+            }
         }
 
-        async function publishSignal() {
-            let symbol = document.getElementById('symbol').value;
-            let entry_price = document.getElementById('entry').value;
-            let take_profit = document.getElementById('targets').value;
-            let stop_loss = document.getElementById('stopLoss').value;
-            let timeframe = document.getElementById('timeframe').value;
+        function handleAuth() {
+            let email = document.getElementById('userEmail').value;
+            let pass = document.getElementById('userPass').value;
+            if(!email || !pass) {
+                alert('الرجاء إدخال البريد وكلمة المرور');
+                return;
+            }
+            // تسجيل محلي مبسط ومستقر للمستخدم
+            localStorage.setItem('albelhoushi_user', email);
+            localStorage.setItem('albelhoushi_date', new Date().getTime());
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('appScreen').classList.remove('hidden');
+            initApp();
+            alert('🎉 تم إنشاء الحساب بنجاح! مبروك 5 أيام تجريبية مجانية.');
+        }
 
-            if(!entry_price || !symbol) {
-                alert('الرجاء إدخال بيانات الصفقة أو استخدام الذكاء الاصطناعي');
+        function initApp() {
+            // التحقق من مدة الـ 5 أيام المجانية (5 * 24 * 60 * 60 * 1000)
+            let regDate = localStorage.getItem('albelhoushi_date') || new Date().getTime();
+            let diffDays = (new Date().getTime() - regDate) / (1000 * 60 * 60 * 24);
+            if (diffDays > 5) {
+                document.getElementById('appScreen').classList.add('hidden');
+                document.getElementById('paywallModal').classList.remove('hidden');
+                return;
+            }
+            fetchSignals();
+
+            // الاستماع للوقت الفعلي لنشر الصفقات الجديدة وإرسال تنبيه فوري للمستخدم
+            supabaseClient.channel('public:signals')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'signals' }, payload => {
+                    alert('🚨 تنبيه صفقة جديدة: تم نشر صفقة جديدة على زوج ' + payload.new.symbol);
+                    fetchSignals();
+                })
+                .subscribe();
+        }
+
+        async function fetchSignals() {
+            const feed = document.getElementById('signalsFeed');
+            let { data: signals, error } = await supabaseClient.from('signals').select('*').order('created_at', { ascending: false });
+            
+            if (error || !signals || signals.length === 0) {
+                feed.innerHTML = '<div class="card" style="text-align:center; color:var(--text-muted);">بانتظار الصفقات الذكية القادمة...</div>';
                 return;
             }
 
-            let { error } = await supabaseClient.from('signals').insert([{ symbol, entry_price, take_profit, stop_loss, timeframe }]);
-            if (error) {
-                alert('خطأ: ' + error.message);
-            } else {
-                alert('🚀 تم نشر الصفقة وإرسال التنبيه الفوري للمستخدمين بنجاح!');
-                document.getElementById('symbol').value = '';
-                document.getElementById('entry').value = '';
-                document.getElementById('targets').value = '';
-                document.getElementById('stopLoss').value = '';
-                document.getElementById('timeframe').value = '';
-            }
+            feed.innerHTML = '';
+            signals.forEach((sig, index) => {
+                let cardId = 'tv-chart-' + index;
+                let symbol = sig.symbol || 'BTC/USDT';
+                feed.innerHTML += `
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #1e293b; padding-bottom:8px; margin-bottom:10px;">
+                            <span style="font-weight:bold; font-size:1.1rem; color:var(--accent-gold);">${symbol}</span>
+                            <span style="padding:4px 10px; border-radius:6px; font-size:0.8rem; font-weight:bold; background:rgba(16,185,129,0.2); color:var(--green);">صفقة نشطة</span>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.85rem; margin-bottom:10px;">
+                            <div style="background:rgba(15,23,42,0.6); padding:8px; border-radius:6px;">سعر الدخول: <b>${sig.entry_price || '--'}</b></div>
+                            <div style="background:rgba(15,23,42,0.6); padding:8px; border-radius:6px;">وقف الخسارة: <b style="color:var(--red);">${sig.stop_loss || '--'}</b></div>
+                        </div>
+                        <div style="background:rgba(15,23,42,0.6); padding:8px; border-radius:6px; font-size:0.85rem; margin-bottom:10px;">الأهداف: <b style="color:var(--green);">${sig.take_profit || '--'}</b></div>
+                        <div style="background:rgba(59,130,246,0.1); border-right:3px solid #3b82f6; padding:8px; border-radius:4px; font-size:0.8rem; color:#93c5fd;">التحليل والفريم: ${sig.timeframe || '15M'}</div>
+                        <div id="${cardId}" class="chart-box"></div>
+                    </div>
+                `;
+                
+                setTimeout(() => {
+                    new TradingView.widget({
+                        "autosize": true,
+                        "symbol": "BINANCE:" + symbol.replace('/', ''),
+                        "interval": "15",
+                        "theme": "dark",
+                        "style": "1",
+                        "locale": "ar",
+                        "enable_publishing": false,
+                        "hide_side_toolbar": true,
+                        "container_id": cardId
+                    });
+                }, 100);
+            });
         }
+
+        // الحماية من لقطات الشاشة أو تصوير الشاشة
+        document.addEventListener('keyup', (e) => {
+            if (e.key == 'PrintScreen') {
+                navigator.clipboard.writeText('');
+                alert('⚠️ عذراً، محتوى هذا التطبيق محمي ضد التقاط الشاشة وحفظ البيانات!');
+            }
+        });
     </script>
 </body>
-        </html>
-        
+    </html>
+    
