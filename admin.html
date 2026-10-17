@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>لوحة تحكم المدير - صفقات العملات</title>
+    <style>
+        body { font-family: Tahoma, sans-serif; background: #f4f4f9; padding: 20px; direction: rtl; }
+        .container { max-width: 600px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: auto; }
+        input, button { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background: #28a745; color: white; font-weight: bold; cursor: pointer; }
+        button:hover { background: #218838; }
+        h2 { text-align: center; color: #333; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="container">
+    <h2>لوحة التحكم - إضافة صفقة جديدة</h2>
+    <form id="signalForm">
+        <label>سعر الدخول (Entry Price):</label>
+        <input type="number" step="any" id="entry_price" required>
+
+        <label>هدف الربح (Take Profit):</label>
+        <input type="number" step="any" id="take_profit" required>
+
+        <label>وقف الخسارة (Stop Loss):</label>
+        <input type="number" step="any" id="stop_loss" required>
+
+        <label>الإطار الزمني (Timeframe):</label>
+        <input type="text" id="timeframe" placeholder="مثال: 1h أو 4h" required>
+
+        <button type="submit">إرسال الصفقة للمستخدمين</button>
+    </form>
+</div>
+
+<script>
+    const SUPABASE_URL = 'sb_publishable_VbgMS_Y_oNs8rbMhVs1Tpg_9GJbP-gl';
+    const SUPABASE_ANON_KEY = 'sb_publishable_VbgMS_Y_oNs8rbMhVs1Tpg_9GJbP-gl';
+    
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    document.getElementById('signalForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const entry_price = parseFloat(document.getElementById('entry_price').value);
+        const take_profit = parseFloat(document.getElementById('take_profit').value);
+        const stop_loss = parseFloat(document.getElementById('stop_loss').value);
+        const timeframe = document.getElementById('timeframe').value;
+
+        const { data, error } = await _supabase
+            .from('signals')
+            .insert([{ entry_price, take_profit, stop_loss, timeframe }]);
+
+        if (error) {
+            alert('حدث خطأ: ' + error.message);
+        } else {
+            alert('تم إضافة الصفقة بنجاح!');
+            document.getElementById('signalForm').reset();
+        }
+    });
+</script>
+
+</body>
+</html>
