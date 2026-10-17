@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق صفقات العملات الرقمية - المستخدمين</title>
+    <!-- استدعاء مكتبة Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Tahoma, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; direction: rtl; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1, h2 { color: #333; text-align: center; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 5px; }
+        button:hover { background-color: #0056b3; }
+        .hidden { display: none; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background-color: #28a745; color: white; }
+        .alert { background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin-bottom: 15px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>تطبيق صفقات العملات الرقمية</h1>
+
+    <!-- قسم تسجيل الدخول أو إنشاء حساب -->
+    <div id="authSection">
+        <div class="alert">مرحباً بك! احصل على فترة تجريبية مجانية لمدة 5 أيام فور إنشاء حسابك.</div>
+        <h2>تسجيل حساب جديد / دخول</h2>
+        <div class="form-group">
+            <label>البريد الإلكتروني</label>
+            <input type="email" id="email" placeholder="example@gmail.com">
+        </div>
+        <div class="form-group">
+            <label>كلمة المرور</label>
+            <input type="password" id="password" placeholder="********">
+        </div>
+        <button onclick="signUp()">إنشاء حساب (تجربة 5 أيام)</button>
+        <button onclick="signIn()" style="background-color: #6c757d; margin-top: 10px;">تسجيل الدخول</button>
+    </div>
+
+    <!-- قسم عرض الصفقات (يظهر بعد تسجيل الدخول وتحقق الاشتراكات) -->
+    <div id="signalsSection" class="hidden">
+        <div id="statusInfo" style="background: #d4edda; color: #155724; padding: 10px; border-radius: 4px; margin-bottom: 15px; text-align: center;"></div>
+        <h2>الصفقات المتاحة</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>الزوج</th>
+                    <th>سعر الدخول</th>
+                    <th>الأهداف</th>
+                    <th>وقف الخسارة</th>
+                </tr>
+            </thead>
+            <tbody id="userSignalsBody">
+                <!-- ستظهر الصفقات هنا -->
+            </tbody>
+        </table>
+        <button onclick="signOut()" style="background-color: #dc3545; margin-top: 20px;">تسجيل الخروج</button>
+    </div>
+</div>
+
+<script>
+    // ضع نفس بيانات مشروعك هنا (Supabase URL & Anon/Publishable Key)
+    const SUPABASE_URL = 'https://gdsnaivwmdbuqktzrbin.supabase.co/rest/v1/';
+    const SUPABASE_ANON_KEY = 'sb_publishable_VbgMS_Y_oNs8rbMhVs1Tpg_9GJbP-gl';
+
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function signUp() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        if (!email || !password) {
+            alert('الرجاء إدخال البريد الإلكتروني وكلمة المرور');
+            return;
+        }
+
+        // 1. تسجيل المستخدم في نظام المصادقة
+        const { data, error } = await supabaseClient.auth.signUp({ email, password });
+        if (error) {
+            alert('خطأ في التسجيل: ' + error.message);
+            return;
+        }
+
+        const user = data.user;
+        if (user) {
+            // 2. حساب تاريخ انتهاء التجربة (بعد 5 أيام)
+            const expiresAt = new Date();
+            expiresAt.setDate(expiresAt.getDate() + 5);
+
+            // 3. إضافة البيانات لجدول profiles مع تحديد حالة التجربة
+            const { error: profileError } = await supabaseClient
+                .from('profiles')
+                .insert([{ 
+                    id: user.id, 
+                    email: email, 
+                    status: 'trial', 
+                    expires_at: expiresAt.toISOString() 
+                }]);
+
+            if (profileError) {
+                alert('تم التسجيل ولكن حدث خطأ في إنشاء الملف الشخصي: ' + profileError.message);
+            } else {
+                alert('تم إنشاء الحساب بنجاح! حصلت على 5 أيام تجريبية.');
+                checkUserAndLoadSignals(user.id);
+            }
+        }
+    }
+
+    async function signIn() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) {
+            alert('خطأ في تسجيل الدخول: ' + error.message);
+            return;
+        }
+
+        if (data.user) {
+            checkUserAndLoadSignals(data.user.id);
+        }
+    }
+
+    async function checkUserAndLoadSignals(userId) {
+        // جلب حالة المستخدم من جدول profiles
+        const { data: profile, error } = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+        if (error || !profile) {
+            alert('لم يتم العثور على بيانات المستخدم.');
+            return;
+        }
+
+        // التحقق مما إذا انتهت فترة الاشتراك/التجربة
+        const now = new Date();
+        const expiresAt = new Date(profile.expires_at);
+
+        if (profile.status === 'expired' || now > expiresAt) {
+            document.getElementById('statusInfo').innerHTML = 'انتهت فترتك التجريبية أو اشتراكك. يرجى التواصل مع المدير لتفعيل الحساب.';
+            document.getElementById('statusInfo').style.background = '#f8d7da';
+            document.getElementById('statusInfo').style.color = '#721c24';
+        } else {
+            document.getElementById('statusInfo').innerHTML = `حالة الحساب: ${profile.status === 'trial' ? 'فترة تجريبية' : 'مدفوع/نشط'} - ينتهي في: ${expiresAt.toLocaleDateString()}`;
+            loadUserSignals();
+        }
+
+        // تبديل الواجهات
+        document.getElementById('authSection').classList.add('hidden');
+        document.getElementById('signalsSection').classList.remove('hidden');
+    }
+
+    async function loadUserSignals() {
+        const { data, error } = await supabaseClient
+            .from('signals')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('خطأ في جلب الصفقات');
+            return;
+        }
+
+        const tbody = document.getElementById('userSignalsBody');
+        tbody.innerHTML = '';
+
+        if (data) {
+            data.forEach(sig => {
+                const row = `<tr>
+                    <td>${sig.pair || ''}</td>
+                    <td>${sig.entry_price || ''}</td>
+                    <td>${sig.targets || ''}</td>
+                    <td>${sig.stop_loss || ''}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+    }
+
+    async function signOut() {
+        await supabaseClient.auth.signOut();
+        location.reload();
+    }
+</script>
+
+</body>
+  </html>
+  
