@@ -2,195 +2,173 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيق صفقات العملات الرقمية - المستخدمين</title>
-    <!-- استدعاء مكتبة Supabase -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Crypto Albelhoushi - منصة التوصيات الذكية</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%230f172a' stroke='%23f59e0b' stroke-width='4'/><path d='M35 30 L65 30 M35 50 L60 50 M35 70 L65 70 M45 20 L45 80' stroke='%23f59e0b' stroke-width='6' stroke-linecap='round'/></svg>">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <style>
-        body { font-family: Tahoma, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; direction: rtl; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1, h2 { color: #333; text-align: center; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 5px; }
-        button:hover { background-color: #0056b3; }
-        .hidden { display: none; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-        th { background-color: #28a745; color: white; }
-        .alert { background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin-bottom: 15px; text-align: center; }
+        :root {
+            --bg-dark: #090d16;
+            --card-bg: #131c2e;
+            --accent-gold: #f59e0b;
+            --green: #10b981;
+            --red: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { user-select: none; -webkit-user-select: none; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0; padding: 12px; padding-bottom: 70px;
+        }
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px; padding: 16px; margin-bottom: 16px;
+            border: 1px solid #1e293b; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        input, button {
+            width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px;
+            border: 1px solid #334155; background-color: #0f172a; color: white; font-size: 0.9rem;
+        }
+        button { background-color: var(--accent-gold); color: #000; font-weight: bold; cursor: pointer; border: none; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; background: rgba(245,158,11,0.15); color: var(--accent-gold); border: 1px solid var(--accent-gold); }
+        .chart-box { height: 260px; border-radius: 10px; overflow: hidden; margin-top: 10px; }
+        .dev-footer {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: #0f172a; border-top: 1px solid #1e293b;
+            text-align: center; padding: 10px; font-size: 0.8rem;
+            color: var(--accent-gold); font-weight: bold; z-index: 1000;
+        }
     </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
 
-<div class="container">
-    <h1>تطبيق صفقات العملات الرقمية</h1>
-
-    <!-- قسم تسجيل الدخول أو إنشاء حساب -->
-    <div id="authSection">
-        <div class="alert">مرحباً بك! احصل على فترة تجريبية مجانية لمدة 5 أيام فور إنشاء حسابك.</div>
-        <h2>تسجيل حساب جديد / دخول</h2>
-        <div class="form-group">
-            <label>البريد الإلكتروني</label>
-            <input type="email" id="email" placeholder="example@gmail.com">
-        </div>
-        <div class="form-group">
-            <label>كلمة المرور</label>
-            <input type="password" id="password" placeholder="********">
-        </div>
-        <button onclick="signUp()">إنشاء حساب (تجربة 5 أيام)</button>
-        <button onclick="signIn()" style="background-color: #6c757d; margin-top: 10px;">تسجيل الدخول</button>
+    <div id="authScreen" class="card" style="max-width: 400px; margin: 40px auto; text-align: center;">
+        <h2 style="color: var(--accent-gold);">⚡ Crypto Albelhoushi</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">تسجيل الدخول أو إنشاء حساب جديد (فترة تجريبية 5 أيام)</p>
+        <input type="email" id="email" placeholder="البريد الإلكتروني">
+        <input type="password" id="password" placeholder="كلمة المرور">
+        <button onclick="handleLogin()">تسجيل الدخول / إنشاء حساب</button>
+        <div id="authMsg" style="color: var(--red); font-size: 0.85rem; margin-top: 10px;"></div>
     </div>
 
-    <!-- قسم عرض الصفقات (يظهر بعد تسجيل الدخول وتحقق الاشتراكات) -->
-    <div id="signalsSection" class="hidden">
-        <div id="statusInfo" style="background: #d4edda; color: #155724; padding: 10px; border-radius: 4px; margin-bottom: 15px; text-align: center;"></div>
-        <h2>الصفقات المتاحة</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>الزوج</th>
-                    <th>سعر الدخول</th>
-                    <th>الأهداف</th>
-                    <th>وقف الخسارة</th>
-                </tr>
-            </thead>
-            <tbody id="userSignalsBody">
-                <!-- ستظهر الصفقات هنا -->
-            </tbody>
-        </table>
-        <button onclick="signOut()" style="background-color: #dc3545; margin-top: 20px;">تسجيل الخروج</button>
+    <div id="appInterface" style="display: none;">
+        <div class="card" style="text-align: center;">
+            <h2 style="margin:0; color:var(--accent-gold);">⚡ لوحة التوصيات الحية</h2>
+            <div id="userBadge" class="badge">جاري التحقق من الاشتراك...</div>
+            <button onclick="handleLogout()" style="background: transparent; color: var(--red); border: 1px solid var(--red); width: auto; padding: 6px 15px; margin-top: 10px; font-size: 0.8rem;">تسجيل الخروج</button>
+        </div>
+
+        <div id="signalsFeed"></div>
     </div>
-</div>
 
-<script>
-    // ضع نفس بيانات مشروعك هنا (Supabase URL & Anon/Publishable Key)
-    const SUPABASE_URL = 'https://gdsnaivwmdbuqktzrbin.supabase.co/rest/v1/';
-    const SUPABASE_ANON_KEY = 'sb_publishable_VbgMS_Y_oNs8rbMhVs1Tpg_9GJbP-gl';
+    <div class="dev-footer">
+        حقوق التطوير محفوظة للمطور: وليد تركي الحمد ©
+    </div>
 
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    <script>
+        const SUPABASE_URL = 'https://gdsnaivwndtuqktzrbin.supabase.co';
+        const SUPABASE_KEY = 'Sb_publishable_VbgMS_Y_oNs8rbMhVs1Tpg_9GJbP-gl';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    async function signUp() {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
+        supabaseClient.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                showApp(session.user);
+            }
+        });
 
-        if (!email || !password) {
-            alert('الرجاء إدخال البريد الإلكتروني وكلمة المرور');
-            return;
-        }
+        async function handleLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            document.getElementById('authMsg').innerText = '';
 
-        // 1. تسجيل المستخدم في نظام المصادقة
-        const { data, error } = await supabaseClient.auth.signUp({ email, password });
-        if (error) {
-            alert('خطأ في التسجيل: ' + error.message);
-            return;
-        }
+            if(!email || !password) {
+                document.getElementById('authMsg').innerText = 'الرجاء إدخال البريد وكلمة المرور';
+                return;
+            }
 
-        const user = data.user;
-        if (user) {
-            // 2. حساب تاريخ انتهاء التجربة (بعد 5 أيام)
-            const expiresAt = new Date();
-            expiresAt.setDate(expiresAt.getDate() + 5);
-
-            // 3. إضافة البيانات لجدول profiles مع تحديد حالة التجربة
-            const { error: profileError } = await supabaseClient
-                .from('profiles')
-                .insert([{ 
-                    id: user.id, 
-                    email: email, 
-                    status: 'trial', 
-                    expires_at: expiresAt.toISOString() 
-                }]);
-
-            if (profileError) {
-                alert('تم التسجيل ولكن حدث خطأ في إنشاء الملف الشخصي: ' + profileError.message);
+            let { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            
+            if (error) {
+                let { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({ email, password });
+                if (signUpError) {
+                    document.getElementById('authMsg').innerText = signUpError.message;
+                } else {
+                    alert('✨ تم إنشاء الحساب بنجاح وتم منحك فترة تجريبية لمدة 5 أيام!');
+                    showApp(signUpData.user);
+                }
             } else {
-                alert('تم إنشاء الحساب بنجاح! حصلت على 5 أيام تجريبية.');
-                checkUserAndLoadSignals(user.id);
+                showApp(data.user);
             }
         }
-    }
 
-    async function signIn() {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-
-        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        if (error) {
-            alert('خطأ في تسجيل الدخول: ' + error.message);
-            return;
+        function showApp(user) {
+            document.getElementById('authScreen').style.display = 'none';
+            document.getElementById('appInterface').style.display = 'block';
+            document.getElementById('userBadge').innerText = `حالة الحساب: مفعل (فترة تجريبية / مشترك)`;
+            fetchSignals();
         }
 
-        if (data.user) {
-            checkUserAndLoadSignals(data.user.id);
-        }
-    }
-
-    async function checkUserAndLoadSignals(userId) {
-        // جلب حالة المستخدم من جدول profiles
-        const { data: profile, error } = await supabaseClient
-            .from('profiles')
-            .select('*')
-            .eq('id', userId)
-            .single();
-
-        if (error || !profile) {
-            alert('لم يتم العثور على بيانات المستخدم.');
-            return;
+        async function handleLogout() {
+            await supabaseClient.auth.signOut();
+            location.reload();
         }
 
-        // التحقق مما إذا انتهت فترة الاشتراك/التجربة
-        const now = new Date();
-        const expiresAt = new Date(profile.expires_at);
+        async function fetchSignals() {
+            const feed = document.getElementById('signalsFeed');
+            let { data: signals, error } = await supabaseClient.from('signals').select('*').order('created_at', { ascending: false });
+            
+            if (error || !signals || signals.length === 0) {
+                feed.innerHTML = '<div class="card" style="text-align:center; color:var(--text-muted);">لا توجد صفقات منشورة حالياً. بانتظار إرسال المدير للصفقات القادمة...</div>';
+                return;
+            }
 
-        if (profile.status === 'expired' || now > expiresAt) {
-            document.getElementById('statusInfo').innerHTML = 'انتهت فترتك التجريبية أو اشتراكك. يرجى التواصل مع المدير لتفعيل الحساب.';
-            document.getElementById('statusInfo').style.background = '#f8d7da';
-            document.getElementById('statusInfo').style.color = '#721c24';
-        } else {
-            document.getElementById('statusInfo').innerHTML = `حالة الحساب: ${profile.status === 'trial' ? 'فترة تجريبية' : 'مدفوع/نشط'} - ينتهي في: ${expiresAt.toLocaleDateString()}`;
-            loadUserSignals();
-        }
-
-        // تبديل الواجهات
-        document.getElementById('authSection').classList.add('hidden');
-        document.getElementById('signalsSection').classList.remove('hidden');
-    }
-
-    async function loadUserSignals() {
-        const { data, error } = await supabaseClient
-            .from('signals')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-        if (error) {
-            console.error('خطأ في جلب الصفقات');
-            return;
-        }
-
-        const tbody = document.getElementById('userSignalsBody');
-        tbody.innerHTML = '';
-
-        if (data) {
-            data.forEach(sig => {
-                const row = `<tr>
-                    <td>${sig.pair || ''}</td>
-                    <td>${sig.entry_price || ''}</td>
-                    <td>${sig.targets || ''}</td>
-                    <td>${sig.stop_loss || ''}</td>
-                </tr>`;
-                tbody.innerHTML += row;
+            feed.innerHTML = '';
+            signals.forEach((sig, index) => {
+                let cardId = 'tv-chart-' + index;
+                let symbol = sig.symbol || 'BTC/USDT';
+                feed.innerHTML += `
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #1e293b; padding-bottom:8px; margin-bottom:10px;">
+                            <span style="font-weight:bold; font-size:1.1rem; color:var(--accent-gold);">${symbol}</span>
+                            <span style="padding:4px 10px; border-radius:6px; font-size:0.8rem; font-weight:bold; background:rgba(16,185,129,0.2); color:var(--green);">الصفقة قائمة</span>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.85rem; margin-bottom:10px;">
+                            <div style="background:rgba(15,23,42,0.6); padding:8px; border-radius:6px;">سعر الدخول: <b>${sig.entry_price || '--'}</b></div>
+                            <div style="background:rgba(15,23,42,0.6); padding:8px; border-radius:6px;">وقف الخسارة: <b style="color:var(--red);">${sig.stop_loss || '--'}</b></div>
+                        </div>
+                        <div style="background:rgba(15,23,42,0.6); padding:8px; border-radius:6px; font-size:0.85rem; margin-bottom:10px;">الأهداف: <b style="color:var(--green);">${sig.take_profit || '--'}</b></div>
+                        <div style="background:rgba(59,130,246,0.1); border-right:3px solid #3b82f6; padding:8px; border-radius:4px; font-size:0.8rem; color:#93c5fd;">الفريم: ${sig.timeframe || '15M'}</div>
+                        <div id="${cardId}" class="chart-box"></div>
+                    </div>
+                `;
+                
+                setTimeout(() => {
+                    new TradingView.widget({
+                        "autosize": true,
+                        "symbol": "BINANCE:" + symbol.replace('/', ''),
+                        "interval": "15",
+                        "theme": "dark",
+                        "style": "1",
+                        "locale": "ar",
+                        "enable_publishing": false,
+                        "hide_side_toolbar": true,
+                        "container_id": cardId
+                    });
+                }, 100);
             });
         }
-    }
 
-    async function signOut() {
-        await supabaseClient.auth.signOut();
-        location.reload();
-    }
-</script>
-
+        document.addEventListener('keyup', (e) => {
+            if (e.key == 'PrintScreen') {
+                navigator.clipboard.writeText('');
+                alert('عذراً، محتوى هذا التطبيق محمي ضد التقاط الشاشة أو المشاركة!');
+            }
+        });
+    </script>
 </body>
-  </html>
-  
+    </html>
+    
