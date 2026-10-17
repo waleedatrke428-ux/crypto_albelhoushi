@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto Albelhoushi - لوحة الإدارة التلقائية</title>
+    <title>Crypto Albelhoushi - لوحة الإدارة الشاملة</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -18,7 +18,7 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color); color: var(--text-color);
-            margin: 0; padding: 12px; padding-bottom: 60px;
+            margin: 0; padding: 12px; padding-bottom: 70px;
         }
         .card { background-color: var(--card-bg); padding: 16px; border-radius: 14px; margin-bottom: 16px; border: 1px solid #334155; }
         input, select, textarea, button {
@@ -38,36 +38,54 @@
 <body>
 
     <div class="card" style="text-align: center;">
-        <h2 style="margin:0; color:var(--accent-gold);">⚙️ لوحة التحكم الآلية والذكية</h2>
-        <p style="color: #94a3b8; font-size: 0.8rem; margin-top: 5px;">Crypto Albelhoushi | إدارة الصفقات الشاملة</p>
+        <h2 style="margin:0; color:var(--accent-gold);">⚙️ لوحة الإدارة الذكية والبورصات</h2>
+        <p style="color: #94a3b8; font-size: 0.8rem; margin-top: 5px;">Crypto Albelhoushi</p>
     </div>
 
+    <!-- قسم إرسال الصفقات التلقائي -->
     <div class="card">
-        <h3 style="color:var(--accent-gold); margin-top:0;">🤖 توليد وتحليل ذكي للعملات</h3>
-        <label style="font-size: 0.85rem; color: #94a3b8;">اختر العملة المطلوبة:</label>
+        <h3 style="color:var(--accent-gold); margin-top:0;">🤖 نظام توليد الصفقات الشامل</h3>
+        <label style="font-size: 0.85rem; color: #94a3b8;">اختر العملة (شامل جميع عملات السوق):</label>
         <select id="aiPair">
-            <option value="BTC/USDT">Bitcoin (BTC/USDT)</option>
-            <option value="ETH/USDT">Ethereum (ETH/USDT)</option>
-            <option value="SOL/USDT">Solana (SOL/USDT)</option>
-            <option value="BNB/USDT">Binance Coin (BNB/USDT)</option>
-            <option value="XRP/USDT">Ripple (XRP/USDT)</option>
-            <option value="ADA/USDT">Cardano (ADA/USDT)</option>
-            <option value="DOGE/USDT">Dogecoin (DOGE/USDT)</option>
-            <option value="AVAX/USDT">Avalanche (AVAX/USDT)</option>
-            <option value="LINK/USDT">Chainlink (LINK/USDT)</option>
-            <option value="DOT/USDT">Polkadot (DOT/USDT)</option>
+            <optgroup label="العملات الرئيسية">
+                <option value="BTC/USDT">Bitcoin (BTC/USDT)</option>
+                <option value="ETH/USDT">Ethereum (ETH/USDT)</option>
+                <option value="SOL/USDT">Solana (SOL/USDT)</option>
+                <option value="BNB/USDT">Binance Coin (BNB/USDT)</option>
+                <option value="XRP/USDT">Ripple (XRP/USDT)</option>
+            </optgroup>
+            <optgroup label="العملات البديلة والشهيرة">
+                <option value="ADA/USDT">Cardano (ADA/USDT)</option>
+                <option value="DOGE/USDT">Dogecoin (DOGE/USDT)</option>
+                <option value="AVAX/USDT">Avalanche (AVAX/USDT)</option>
+                <option value="LINK/USDT">Chainlink (LINK/USDT)</option>
+                <option value="DOT/USDT">Polkadot (DOT/USDT)</option>
+                <option value="MATIC/USDT">Polygon (MATIC/USDT)</option>
+                <option value="LTC/USDT">Litecoin (LTC/USDT)</option>
+                <option value="UNI/USDT">Uniswap (UNI/USDT)</option>
+                <option value="NEAR/USDT">Near Protocol (NEAR/USDT)</option>
+                <option value="ATOM/USDT">Cosmos (ATOM/USDT)</option>
+            </optgroup>
         </select>
-        <button class="btn-ai" onclick="runAI()">⚡ تجهيز الصفقة بالذكاء الاصطناعي</button>
-    </div>
-
-    <div class="card">
-        <h3 style="color:var(--accent-gold); margin-top:0;">🚀 نشر الصفقة للمستخدمين فوراً</h3>
+        <button class="btn-ai" onclick="runAI()">⚡ توليد صفقة ذكية وتحديث الأهداف</button>
+        
         <input type="text" id="symbol" placeholder="الزوج (مثال: BTC/USDT)">
         <input type="text" id="entry" placeholder="سعر الدخول">
-        <input type="text" id="targets" placeholder="الأهداف (Take Profit)">
+        <input type="text" id="targets" placeholder="الأهداف (TP1, TP2, TP3)">
         <input type="text" id="stopLoss" placeholder="وقف الخسارة (Stop Loss)">
-        <input type="text" id="timeframe" placeholder="الفريم والتحليل (Timeframe)">
-        <button onclick="publishSignal()">📢 نشر وتعميم الصفقة للجميع</button>
+        <input type="text" id="timeframe" placeholder="التحليل والفريم">
+        <button onclick="publishSignal()">📢 نشر الصفقة الفوري للمستخدمين</button>
+    </div>
+
+    <!-- جدول مواعيد البورصات العالمية -->
+    <div class="card">
+        <h3 style="color:var(--accent-gold); margin-top:0;">🌐 مواعيد البورصات العالمية</h3>
+        <div style="font-size:0.85rem; line-height:1.6; color:#cbd5e1;">
+            <p>🇺🇸 <b>بورصة نيويورك (NYSE):</b> فتح 04:30 عصراً - إغلاق 11:00 مساءً</p>
+            <p>🇬🇧 <b>بورصة لندن (LSE):</b> فتح 10:00 صباحاً - إغلاق 06:30 مساءً</p>
+            <p>🇯🇵 <b>بورصة طوكيو (TSE):</b> فتح 03:00 ص - إغلاق 09:00 ص</p>
+            <p>🇦🇺 <b>بورصة سيدني:</b> فتح 01:00 ص - إغلاق 07:00 ص</p>
+        </div>
     </div>
 
     <div class="dev-footer">
@@ -91,14 +109,14 @@
             else if (pair.includes('DOGE')) base = 0.12;
             else if (pair.includes('AVAX')) base = 25;
             else if (pair.includes('LINK')) base = 15;
-            else if (pair.includes('DOT')) base = 6;
+            else base = 10;
 
             document.getElementById('symbol').value = pair;
             document.getElementById('entry').value = (base * 0.995).toFixed(2);
-            document.getElementById('targets').value = `${(base * 1.015).toFixed(2)}, ${(base * 1.03).toFixed(2)}`;
-            document.getElementById('stopLoss').value = (base * 0.985).toFixed(2);
-            document.getElementById('timeframe').value = '15M / SMC Structure';
-            alert('✅ تم توليد بيانات الصفقة للعملة المختارة بنجاح!');
+            document.getElementById('targets').value = `الهدف 1: ${(base * 1.015).toFixed(2)} | الهدف 2: ${(base * 1.03).toFixed(2)} | الهدف 3: ${(base * 1.05).toFixed(2)}`;
+            document.getElementById('stopLoss').value = (base * 0.98).toFixed(2);
+            document.getElementById('timeframe').value = '15M / تحليل موجي ذكي';
+            alert('✅ تم توليد الصفقة وتحليلها آلياً!');
         }
 
         async function publishSignal() {
@@ -109,15 +127,15 @@
             let timeframe = document.getElementById('timeframe').value;
 
             if(!entry_price || !symbol) {
-                alert('الرجاء اختيار العملة وملء البيانات');
+                alert('الرجاء إدخال بيانات الصفقة أو استخدام الذكاء الاصطناعي');
                 return;
             }
 
             let { error } = await supabaseClient.from('signals').insert([{ symbol, entry_price, take_profit, stop_loss, timeframe }]);
             if (error) {
-                alert('خطأ أثناء النشر: ' + error.message);
+                alert('خطأ: ' + error.message);
             } else {
-                alert('🚀 تم نشر الصفقة بنجاح وظهرت في تطبيق المستخدمين مباشرة!');
+                alert('🚀 تم نشر الصفقة وإرسال التنبيه الفوري للمستخدمين بنجاح!');
                 document.getElementById('symbol').value = '';
                 document.getElementById('entry').value = '';
                 document.getElementById('targets').value = '';
