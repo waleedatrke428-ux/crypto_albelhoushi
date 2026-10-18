@@ -3,242 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة التوصيات الاحترافية</title>
+    <title>منصة التوصيات الذكية</title>
+    <!-- مكتبة Supabase للاتصال بقاعدة البيانات -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: Tahoma, sans-serif; background-color: #0B0F1A; color: #FFF; margin: 0; padding: 0 0 70px 0; text-align: center; }
-        .header { background: #121826; padding: 15px; border-bottom: 1px solid #1F293D; font-weight: bold; font-size: 18px; color: #00E5FF; }
-        .container { padding: 16px; }
-        .auth-box { background: #121826; border-radius: 12px; padding: 20px; margin: 20px auto; max-width: 400px; border: 1px solid #1F293D; text-align: right; }
-        .auth-box input { width: 100%; padding: 10px; margin: 8px 0; background: #0B0F1A; border: 1px solid #2A364F; color: #FFF; border-radius: 8px; box-sizing: border-box; }
-        .auth-box button { width: 100%; padding: 10px; background: #00E5FF; border: none; color: #0B0F1A; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 10px; }
-        .trade-card { background: #121826; border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid #00E5FF; text-align: right; }
-        .locked-card { background: #121826; border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid #EA3943; text-align: center; opacity: 0.8; }
-        .symbol { font-size: 18px; font-weight: bold; color: #00E5FF; }
-        .badge-long { color: #16C784; font-weight: bold; float: left; }
-        .badge-short { color: #EA3943; font-weight: bold; float: left; }
-        
-        /* شريط التنقل السفلي الاحترافي */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #121826; display: flex; justify-content: space-around; border-top: 1px solid #1F293D; padding: 10px 0; z-index: 1000; }
-        .nav-item { background: none; border: none; color: #8A94A8; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
-        .nav-item.active { color: #00E5FF; }
-        .nav-item span { font-size: 20px; margin-bottom: 2px; }
-        
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .alert-trial { background: #1F1A0B; border: 1px solid #FFC107; color: #FFC107; padding: 10px; border-radius: 8px; font-size: 13px; margin-bottom: 15px; }
+        body { font-family: Tahoma, sans-serif; background: #0b0f19; color: #fff; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: #161b22; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        h1, h2 { color: #00E5FF; text-align: center; }
+        .card { background: #21262d; padding: 15px; margin: 10px 0; border-radius: 8px; border: 1px solid #30363d; }
+        button { background: #00E5FF; color: #0b0f19; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
+        button:hover { background: #00b8cc; }
+        input { width: 100%; padding: 10px; margin: 8px 0; background: #0d1117; border: 1px solid #30363d; color: #fff; border-radius: 6px; box-sizing: border-box; }
+        .locked { filter: blur(5px); user-select: none; }
+        .lock-message { color: #ff5252; text-align: center; font-weight: bold; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="header">منصة التوصيات الذكية 🚀</div>
+    <div class="container" id="app">
+        <h1>منصة التوصيات</h1>
+        
+        <!-- قسم تسجيل الدخول / إنشاء حساب -->
+        <div id="auth-section" class="card">
+            <h2>تسجيل الدخول</h2>
+            <input type="email" id="email" placeholder="البريد الإلكتروني">
+            <input type="password" id="password" placeholder="كلمة المرور">
+            <button onclick="handleLogin()">دخول / تسجيل جديد</button>
+        </div>
 
-    <!-- قسم تسجيل الدخول (يظهر إذا لم يكن المستخدم مسجلاً) -->
-    <div id="authSection" class="container" style="display:none;">
-        <div class="auth-box">
-            <h3 style="text-align: center; color: #00E5FF; margin-top: 0;">تسجيل الدخول / حساب جديد</h3>
-            <label>البريد الإلكتروني:</label>
-            <input type="email" id="email" placeholder="name@example.com">
-            <label>كلمة المرور:</label>
-            <input type="password" id="password" placeholder="********">
-            <button onclick="handleAuth(true)">تسجيل الدخول</button>
-            <button onclick="handleAuth(false)" style="background: #16C784; color: #FFF; margin-top: 5px;">إنشاء حساب جديد (5 أيام تجربة)</button>
-            <p id="authMsg" style="color: #EA3943; font-size: 12px; text-align: center; margin-top: 10px;"></p>
+        <!-- قسم التوصيات (يظهر بعد تسجيل الدخول) -->
+        <div id="dashboard-section" style="display:none;">
+            <div class="card">
+                <p id="sub-status" style="font-weight: bold; color: #4caf50;"></p>
+            </div>
+            
+            <h2>التوصيات الحية</h2>
+            <div id="trades-list">
+                <!-- سيتم جلب التوصيات هنا ديناميكياً -->
+            </div>
+            <button onclick="handleLogout()" style="background: #f85149; margin-top: 20px;">تسجيل الخروج</button>
         </div>
     </div>
 
-    <!-- المحتوى الرئيسي (يظهر بعد تسجيل الدخول) -->
-    <div id="mainApp" style="display:none;">
-        
-        <!-- تبويب التوصيات -->
-        <div id="tab-trades" class="tab-content active container">
-            <div id="trialAlert" class="alert-trial"></div>
-            <div id="tradesContainer">
-                <div style="color: #8A94A8; padding: 20px;">جاري تحميل التوصيات...</div>
-            </div>
-        </div>
+    <script>
+        // ضع هنا بيانات مشروعك من Supabase
+        const SUPABASE_URL = 'https://gdsnaivwmdbuqktzrbin.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdkc25aiXZ3bWRidXFrdHpyYmluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxODI0NzAsImV4cCI6MjEwNzc1ODQ3MH0.cYsHuTE7XL8rR9M5PWIDPZhmE8Ntfvcnxdw5McR_f5w';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        <!-- تبويب الأخبار -->
-        <div id="tab-news" class="tab-content container">
-            <h2>أحدث أخبار الكريپتو</h2>
-            <div class="trade-card">
-                <div class="symbol">السوق يتحضر لحركة قوية</div>
-                <p style="font-size: 13px; color: #8A94A8;">تابع التحليلات اليومية لأهم الأخبار الاقتصادية وتأثيرها على العملات الرقمية.</p>
-            </div>
-        </div>
-
-        <!-- تبويب البورصات -->
-        <div id="tab-markets" class="tab-content container">
-            <h2>حالة البورصات العالمية</h2>
-            <div class="trade-card">
-                <p>🟢 بورصة ناسداك: <b>مفتوحة</b></p>
-                <p>🟢 سوق العملات الرقمية (24/7): <b>مفتوح ومستقر</b></p>
-            </div>
-        </div>
-
-        <!-- تبويب العملات الرقمية -->
-        <div id="tab-coins" class="tab-content container">
-            <h2>شامل العملات الرقمية</h2>
-            <div class="trade-card">
-                <p>يتضمن النظام جميع العملات الرقمية (Bitcoin, Ethereum, Solana, Altcoins...) ويتم تحديثها لحظياً.</p>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- شريط التنقل السفلي بالأيقونات -->
-    <div class="bottom-nav" id="bottomNav" style="display:none;">
-        <button class="nav-item active" onclick="switchTab('trades', this)">
-            <span>📊</span>التوصيات
-        </button>
-        <button class="nav-item" onclick="switchTab('news', this)">
-            <span>📰</span>الأخبار
-        </button>
-        <button class="nav-item" onclick="switchTab('markets', this)">
-            <span>🌐</span>البورصات
-        </button>
-        <button class="nav-item" onclick="switchTab('coins', this)">
-            <span>🪙</span>العملات
-        </button>
-    </div>
-
-<script>
-    const SUPABASE_URL = "https://gdsnaivwmdbuqktzrbin.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdkc25haXZ3bWRidXFrdHpyYmluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxODI0NzAsImV4cCI6MjEwNzc1ODQ3MH0.cYsHuTE7XL8rR9M5PWIDPZhmE8Ntfvcnxdw5McR_f5w";
-    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    let currentUser = null;
-    let userProfile = null;
-
-    async function checkUser() {
-        const { data: { session } } = await _supabase.auth.getSession();
-        if (session) {
-            currentUser = session.user;
-            await fetchUserProfile();
-            document.getElementById('authSection').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            document.getElementById('bottomNav').style.display = 'flex';
-            fetchTrades();
-        } else {
-            document.getElementById('authSection').style.display = 'block';
-            document.getElementById('mainApp').style.display = 'none';
-            document.getElementById('bottomNav').style.display = 'none';
-        }
-    }
-
-    async function fetchUserProfile() {
-        const { data, error } = await _supabase.from('profiles').select('*').eq('id', currentUser.id).single();
-        if (data) {
-            userProfile = data;
-            checkTrialStatus();
-        }
-    }
-
-    function checkTrialStatus() {
-        const now = new Date();
-        const trialEnd = new Date(userProfile.trial_ends_at);
-        const isSubscribed = userProfile.is_subscribed;
-        
-        const alertBox = document.getElementById('trialAlert');
-        if (isSubscribed) {
-            alertBox.innerHTML = "⭐ حسابك مشترك رسمياً - جميع التوصيات متاحة.";
-            alertBox.style.borderColor = "#16C784";
-            alertBox.style.color = "#16C784";
-        } else if (now < trialEnd) {
-            const remainingDays = Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24));
-            alertBox.innerHTML = `⏳ الفترة التجريبية نشطة. متبقي لك ${remainingDays} أيام. <a href="#" onclick="alert('للاشتراك تواصل مع الإدارة')" style="color:#00E5FF;">اشترك الآن</a>`;
-        } else {
-            alertBox.innerHTML = "⚠️ انتهت فترتك التجريبية (5 أيام). التوصيات أصبحت مشفرة. يرجى الاشتراك لفتح التفاصيل الكاملة!";
-            alertBox.style.borderColor = "#EA3943";
-            alertBox.style.color = "#EA3943";
-        }
-    }
-
-    async function handleAuth(isLogin) {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const msg = document.getElementById('authMsg');
-        
-        if (!email || !password) {
-            msg.innerText = "الرجاء إدخال البريد وكلمة المرور";
-            return;
-        }
-
-        if (isLogin) {
-            const { error } = await _supabase.auth.signInWithPassword({ email, password });
-            if (error) msg.innerText = "خطأ في البريد أو كلمة المرور";
-            else checkUser();
-        } else {
-            const { data, error } = await _supabase.auth.signUp({ email, password });
+        async function handleLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            // محاولة تسجيل الدخول
+            let { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
             if (error) {
-                msg.innerText = error.message;
-            } else if (data.user) {
-                // إنشاء بروفایل للمستخدم الجديد لتفعيل 5 أيام تجريبية
-                await _supabase.from('profiles').insert([{ id: data.user.id, email: email, is_subscribed: false }]);
-                alert("تم إنشاء الحساب بنجاح وتم منحك 5 أيام تجريبية!");
-                checkUser();
+                // إذا لم يكن الحساب موجوداً، نقوم بإنشائه تلقائياً
+                let signUpRes = await supabaseClient.auth.signUp({ email, password });
+                if (signUpRes.error) {
+                    alert('خطأ: ' + signUpRes.error.message);
+                    return;
+                }
+                alert('تم إنشاء الحساب وتسجيل الدخول بنجاح!');
+            }
+            checkUserSession();
+        }
+
+        async function checkUserSession() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                document.getElementById('auth-section').style.display = 'none';
+                document.getElementById('dashboard-section').style.display = 'block';
+                loadUserDataAndTrades(session.user.id);
             }
         }
-    }
 
-    async function fetchTrades() {
-        const { data } = await _supabase.from('trades').select('*').order('created_at', { ascending: false });
-        renderTrades(data);
-    }
+        async function loadUserDataAndTrades(userId) {
+            // جلب بيانات ملف المستخدم لفحص فترة التجربة 5 أيام والاشتراك
+            let { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', userId).single();
+            
+            let isAllowed = false;
+            if (profile) {
+                const now = new Date();
+                const trialEnd = new Date(profile.trial_ends_at);
+                if (profile.is_subscribed || now < trialEnd) {
+                    isAllowed = true;
+                    document.getElementById('sub-status').innerText = 'حالتك: لديك صلاحية الوصول النشطة (تجربة أو اشتراك)';
+                } else {
+                    document.getElementById('sub-status').innerText = 'انتهت فترتك التجريبية (5 أيام)، يرجى الاشتراكات لعرض التفاصيل';
+                    document.getElementById('sub-status').style.color = '#ff5252';
+                }
+            }
 
-    function renderTrades(trades) {
-        const container = document.getElementById('tradesContainer');
-        if (!trades || trades.length === 0) {
-            container.innerHTML = '<div style="color: #8A94A8; padding: 20px;">لا توجد توصيات حالياً.</div>';
-            return;
-        }
-
-        const now = new Date();
-        const trialEnd = userProfile ? new Date(userProfile.trial_ends_at) : new Date(0);
-        const isSubscribed = userProfile ? userProfile.is_subscribed : false;
-        const canViewFull = isSubscribed || (now < trialEnd);
-
-        container.innerHTML = '';
-        trades.forEach(trade => {
-            const isLong = trade.is_long;
-            if (canViewFull) {
-                // عرض كامل التوصية إذا كان ضمن الفترة التجريبية أو مشترك
-                container.innerHTML += `
-                    <div class="trade-card">
-                        <div>
-                            <span class="symbol">${trade.symbol}</span> 
-                            <span class="${isLong ? 'badge-long' : 'badge-short'}">${isLong ? 'شراء LONG' : 'بيع SHORT'}</span>
-                        </div>
-                        <hr style="border: 0; border-top: 1px solid #1F293D; margin: 10px 0;">
-                        <p style="margin: 6px 0;">سعر الدخول: <b>${trade.entry}</b></p>
-                        <p style="margin: 6px 0;">وقف الخسارة: <b style="color: #EA3943;">${trade.stop_loss}</b></p>
-                        <div style="font-size: 13px; color: #FFC107; margin-top: 8px;">الأهداف: ${Array.isArray(trade.targets) ? trade.targets.join(' - ') : trade.targets}</div>
-                    </div>
-                `;
+            // جلب التوصيات من الجدول
+            let { data: trades } = await supabaseClient.from('trades').select('*').order('created_at', { ascending: false });
+            
+            const listDiv = document.getElementById('trades-list');
+            listDiv.innerHTML = '';
+            
+            if (trades && trades.length > 0) {
+                trades.forEach(trade => {
+                    const tradeCard = document.createElement('div');
+                    tradeCard.className = 'card';
+                    
+                    if (isAllowed) {
+                        tradeCard.innerHTML = `
+                            <h3>${trade.symbol} (${trade.is_long ? 'شراء 🟢' : 'بيع 🔴'})</h3>
+                            <p>سعر الدخول: ${trade.entry}</p>
+                            <p>وقف الخسارة: ${trade.stop_loss}</p>
+                        `;
+                    } else {
+                        tradeCard.innerHTML = `
+                            <h3>توصية مميزة (مغلقة)</h3>
+                            <div class="locked">
+                                <p>سعر الدخول: مخفي</p>
+                                <p>وقف الخسارة: مخفي</p>
+                            </div>
+                            <div class="lock-message">🔒 اشتَرِ المنصة لفك قفل التوصيات</div>
+                        `;
+                    }
+                    listDiv.appendChild(tradeCard);
+                });
             } else {
-                // إظهار التوصية بشكل مشفر/مقفل إذا انتهت التجربة ولم يشترك
-                container.innerHTML += `
-                    <div class="locked-card">
-                        <div><span class="symbol">🔒 ${trade.symbol}</span></div>
-                        <p style="color: #EA3943; font-size: 13px; margin: 10px 0;">انتهت المدة التجريبية. التفاصيل مغلقة ومشفّرة.</p>
-                        <button onclick="alert('يرجى الاشتراك لتفعيل الحساب الكامل')" style="background: #EA3943; color: #FFF; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">اشترك الآن لفتح التفاصيل</button>
-                    </div>
-                `;
+                listDiv.innerHTML = '<p style="text-align:center;">لا توجد توصيات حالياً</p>';
             }
-        });
-    }
+        }
 
-    function switchTab(tabId, btn) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-        
-        document.getElementById('tab-' + tabId).classList.add('active');
-        btn.classList.add('active');
-    }
+        async function handleLogout() {
+            await supabaseClient.auth.signOut();
+            location.reload();
+        }
 
-    // التحقق عند بدء التشغيل
-    checkUser();
-</script>
-
+        // تنفيذ فحص الجلسة عند فتح الصفحة
+        checkUserSession();
+    </script>
 </body>
 </html>

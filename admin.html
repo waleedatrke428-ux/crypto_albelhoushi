@@ -3,162 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم المدير - الإدارة</title>
+    <title>لوحة تحكم المدير</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: Tahoma, sans-serif; background-color: #0B0F1A; color: #FFF; margin: 0; padding: 16px; text-align: center; }
-        .header { background: #121826; padding: 15px; border-radius: 12px; border: 1px solid #00E5FF; margin-bottom: 20px; font-size: 20px; font-weight: bold; color: #00E5FF; }
-        .card { background: #121826; border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid #1F293D; text-align: right; }
-        input, select { width: 100%; padding: 10px; margin: 6px 0; background: #0B0F1A; border: 1px solid #2A364F; color: #FFF; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #00E5FF; border: none; color: #0B0F1A; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-        th, td { border: 1px solid #1F293D; padding: 8px; text-align: center; }
-        th { background: #1a2236; color: #00E5FF; }
-        .stats-box { display: flex; justify-content: space-around; margin-bottom: 16px; }
-        .stat-card { background: #121826; border: 1px solid #00E5FF; border-radius: 10px; padding: 10px; width: 45%; text-align: center; }
+        body { font-family: Tahoma, sans-serif; background: #0b0f19; color: #fff; margin: 0; padding: 20px; }
+        .container { max-width: 700px; margin: 0 auto; background: #161b22; padding: 20px; border-radius: 12px; }
+        h1, h2 { color: #00E5FF; text-align: center; }
+        .card { background: #21262d; padding: 15px; margin: 10px 0; border-radius: 8px; border: 1px solid #30363d; }
+        button { background: #00E5FF; color: #0b0f19; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
+        input, select { width: 100%; padding: 10px; margin: 8px 0; background: #0d1117; border: 1px solid #30363d; color: #fff; border-radius: 6px; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
-    <div class="header">لوحة تحكم المدير الإشرافية 🛠️</div>
-
-    <!-- إحصائيات عامة -->
-    <div class="stats-box">
-        <div class="stat-card">
-            <div style="font-size: 22px; font-weight: bold; color: #00E5FF;" id="totalUsers">0</div>
-            <div style="font-size: 12px; color: #8A94A8;">إجمالي المستخدمين</div>
-        </div>
-        <div class="stat-card">
-            <div style="font-size: 22px; font-weight: bold; color: #16C784;" id="totalSubs">0</div>
-            <div style="font-size: 12px; color: #8A94A8;">المشتركين النشطين</div>
-        </div>
-    </div>
-
-    <!-- إرسال توصية جديدة -->
-    <div class="card">
-        <h3 style="color: #00E5FF; margin-top: 0;">إرسال توصية جديدة (فوري)</h3>
-        <label>اسم العملة (Symbol):</label>
-        <input type="text" id="symbol" placeholder="مثال: BTC/USDT">
+    <div class="container">
+        <h1>لوحة تحكم الأدمن 🛠️</h1>
         
-        <label>نوع الصفقة:</label>
-        <select id="isLong">
-            <option value="true">شراء (LONG 🟢)</option>
-            <option value="false">بيع (SHORT 🔴)</option>
-        </select>
-
-        <label>سعر الدخول (Entry):</label>
-        <input type="text" id="entry" placeholder="65000">
-
-        <label>وقف الخسارة (Stop Loss):</label>
-        <input type="text" id="stopLoss" placeholder="64000">
-
-        <label>الأهداف (مفصولة بفاصلة):</label>
-        <input type="text" id="targets" placeholder="66000, 67000, 68000">
-
-        <button onclick="sendTrade()">نشر التوصية الآن</button>
-    </div>
-
-    <!-- إدارة المستخدمين ومعرفتهم -->
-    <div class="card">
-        <h3 style="color: #00E5FF; margin-top: 0;">قائمة المستخدمين المسجلين</h3>
-        <div style="overflow-x: auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>البريد الإلكتروني</th>
-                        <th>الدولة</th>
-                        <th>الحالة</th>
-                        <th>نهاية التجربة</th>
-                    </tr>
-                </thead>
-                <tbody id="usersTableBody">
-                    <tr><td colspan="4" style="color: #8A94A8;">جاري تحميل البيانات...</td></tr>
-                </tbody>
-            </table>
+        <div class="card">
+            <h2>نشر توصية جديدة</h2>
+            <input type="text" id="symbol" placeholder="اسم العملة (مثال: BTC/USDT)">
+            <select id="is_long">
+                <option value="true">شراء (Long 🟢)</option>
+                <option value="false">بيع (Short 🔴)</option>
+            </select>
+            <input type="text" id="entry" placeholder="سعر الدخول">
+            <input type="text" id="stop_loss" placeholder="وقف الخسارة">
+            <button onclick="publishTrade()">نشر التوصية الآن</button>
         </div>
     </div>
 
-<script>
-    const SUPABASE_URL = "https://gdsnaivwmdbuqktzrbin.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdkc25haXZ3bWRidXFrdHpyYmluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxODI0NzAsImV4cCI6MjEwNzc1ODQ3MH0.cYsHuTE7XL8rR9M5PWIDPZhmE8Ntfvcnxdw5McR_f5w";
-    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    <script>
+        const SUPABASE_URL = 'https://gdsnaivwmdbuqktzrbin.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdkc25aiXZ3bWRidXFrdHpyYmluIiwicm9sZSI6ImFub24iJlcXAiOjE3OTIxODI0NzAsImV4cCI6MjEwNzc1ODQ3MH0.cYsHuTE7XL8rR9M5PWIDPZhmE8Ntfvcnxdw5McR_f5w';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    async function loadAdminData() {
-        // جلب المستخدمين من جدول profiles
-        const { data: profiles, error } = await _supabase.from('profiles').select('*').order('created_at', { ascending: false });
-        
-        if (error) {
-            console.error("خطأ في جلب المستخدمين:", error);
-            return;
-        }
+        async function publishTrade() {
+            const symbol = document.getElementById('symbol').value;
+            const is_long = document.getElementById('is_long').value === 'true';
+            const entry = document.getElementById('entry').value;
+            const stop_loss = document.getElementById('stop_loss').value;
 
-        document.getElementById('totalUsers').innerText = profiles.length;
-        
-        const subscribedCount = profiles.filter(p => p.is_subscribed).length;
-        document.getElementById('totalSubs').innerText = subscribedCount;
-
-        const tbody = document.getElementById('usersTableBody');
-        tbody.innerHTML = '';
-
-        profiles.forEach(user => {
-            const now = new Date();
-            const trialEnd = new Date(user.trial_ends_at);
-            let statusBadge = '';
-
-            if (user.is_subscribed) {
-                statusBadge = '<span style="color: #16C784; font-weight: bold;">مشترك ⭐</span>';
-            } else if (now < trialEnd) {
-                statusBadge = '<span style="color: #FFC107;">تجريبي ⏳</span>';
-            } else {
-                statusBadge = '<span style="color: #EA3943;">منتهي ❌</span>';
+            if (!symbol || !entry) {
+                alert('الرجاء إدخال اسم العملة وسعر الدخول على الأقل!');
+                return;
             }
 
-            tbody.innerHTML += `
-                <tr>
-                    <td>${user.email}</td>
-                    <td>${user.country || 'غير محدد'}</td>
-                    <td>${statusBadge}</td>
-                    <td style="font-size: 11px;">${new Date(user.trial_ends_at).toLocaleDateString()}</td>
-                </tr>
-            `;
-        });
-    }
+            const { data, error } = await supabaseClient.from('trades').insert([
+                { symbol, is_long, entry, stop_loss }
+            ]);
 
-    async function sendTrade() {
-        const symbol = document.getElementById('symbol').value;
-        const isLong = document.getElementById('isLong').value === 'true';
-        const entry = document.getElementById('entry').value;
-        const stopLoss = document.getElementById('stopLoss').value;
-        const targetsInput = document.getElementById('targets').value;
-
-        if (!symbol || !entry || !stopLoss || !targetsInput) {
-            alert("الرجاء تعبئة كافة الحقول الخاصة بالتوصية!");
-            return;
+            if (error) {
+                alert('حدث خطأ: ' + error.message);
+            } else {
+                alert('تم نشر التوصية بنجاح ووصلت للمستخدمين!');
+                document.getElementById('symbol').value = '';
+                document.getElementById('entry').value = '';
+                document.getElementById('stop_loss').value = '';
+            }
         }
-
-        const targets = targetsInput.split(',').map(t => t.trim());
-
-        const { error } = await _supabase.from('trades').insert([{
-            symbol: symbol,
-            is_long: isLong,
-            entry: entry,
-            stop_loss: stopLoss,
-            targets: targets
-        }]);
-
-        if (error) {
-            alert("حدث خطأ أثناء إرسال التوصية: " + error.message);
-        } else {
-            alert("تم نشر التوصية بنجاح ووصلت للمستخدمين فوراً!");
-            document.getElementById('symbol').value = '';
-            document.getElementById('entry').value = '';
-            document.getElementById('stopLoss').value = '';
-            document.getElementById('targets').value = '';
-        }
-    }
-
-    loadAdminData();
-</script>
-
+    </script>
 </body>
 </html>
