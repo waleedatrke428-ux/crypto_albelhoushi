@@ -4,58 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منصة الصفقات الذكية - Crypto Albelhoushi</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
-                extend: {
-                    colors: {
-                        darkBg: '#0b0e11',
-                        cardBg: '#1e2329',
-                        accentGreen: '#0ecb81',
-                        accentRed: '#f6465d'
-                    }
-                }
+                extend: { colors: { darkBg: '#0b0e11', cardBg: '#1e2329', accentGreen: '#0ecb81', accentRed: '#f6465d' } }
             }
         }
     </script>
     <style>
-        /* منع التحديد وحماية الشاشة */
-        body {
-            -webkit-user-select: none;
-            user-select: none;
-            -webkit-touch-callout: none;
-        }
-        /* البصمة المائية الديناميكية المتحركة */
+        body { -webkit-user-select: none; user-select: none; }
         #dynamic-watermark {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 9999;
-            overflow: hidden;
-            opacity: 0.08;
-            font-size: 14px;
-            color: #ffffff;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            align-content: space-around;
-            transform: rotate(-15deg);
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 9999; overflow: hidden; opacity: 0.08;
+            font-size: 14px; color: #ffffff; display: flex; flex-wrap: wrap;
+            justify-content: space-around; align-content: space-around; transform: rotate(-15deg);
         }
     </style>
 </head>
 <body class="bg-darkBg text-gray-100 font-sans min-h-screen pb-20">
-
-    <!-- البصمة المائية الديناميكية لحماية المحتوى -->
     <div id="dynamic-watermark"></div>
 
-    <!-- تسجيل الدخول الإجباري (للتحقق من الـ 5 أيام والاشتراك) -->
     <div id="auth-modal" class="fixed inset-0 bg-darkBg/95 z-50 flex items-center justify-center p-4">
         <div class="bg-cardBg border border-gray-800 rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-5">
             <div class="text-center space-y-2">
@@ -63,16 +35,12 @@
                     <i class="fa-solid fa-shield-halved text-darkBg text-2xl"></i>
                 </div>
                 <h2 class="text-xl font-bold text-white">تسجيل الدخول للمنصة الآمنة</h2>
-                <p class="text-xs text-gray-400">أدخل بريدك الإلكتروني للحصول على فترتك التجريبية (5 أيام)</p>
+                <p class="text-xs text-gray-400">أدخل بريدك الإلكتروني لتفعيل الفترة التجريبية (5 أيام)</p>
             </div>
             <form id="login-form" class="space-y-4">
                 <div>
                     <label class="block text-xs text-gray-400 mb-1">البريد الإلكتروني</label>
                     <input type="email" id="user-email" required class="w-full bg-darkBg border border-gray-700 rounded-xl p-3 text-sm text-white focus:border-emerald-500 focus:outline-none" placeholder="name@example.com">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">كلمة المرور</label>
-                    <input type="password" id="user-pass" required class="w-full bg-darkBg border border-gray-700 rounded-xl p-3 text-sm text-white focus:border-emerald-500 focus:outline-none" placeholder="••••••••">
                 </div>
                 <button type="submit" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold py-3.5 rounded-xl shadow-lg hover:opacity-90 transition-all">
                     بدء التداول الفوري
@@ -81,7 +49,6 @@
         </div>
     </div>
 
-    <!-- شريط التنقل العلوي -->
     <header class="bg-cardBg border-b border-gray-800 p-4 sticky top-0 z-40 flex justify-between items-center shadow-md">
         <div class="flex items-center space-x-3 space-x-reverse">
             <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-yellow-500 to-emerald-500 flex items-center justify-center shadow-lg">
@@ -89,113 +56,45 @@
             </div>
             <div>
                 <h1 class="font-bold text-sm text-white">Crypto Albelhoushi AI</h1>
-                <p id="sub-status-text" class="text-xs text-emerald-400 font-medium">تجربة مجانية نشطة</p>
+                <p class="text-xs text-emerald-400 font-medium">تجربة مجانية نشطة</p>
             </div>
-        </div>
-        <div id="market-badge" class="text-xs px-2.5 py-1 rounded-full bg-gray-800 border border-gray-700 font-semibold text-gray-300">
-            البورصة: جاري الفحص
         </div>
     </header>
 
     <main class="max-w-4xl mx-auto p-4 space-y-6 mt-2">
-
-        <!-- لوحة تنبيهات الاشتراك المنتهي -->
-        <div id="subscription-alert" class="hidden bg-red-950/40 border border-red-800 p-4 rounded-2xl flex items-center justify-between">
-            <div class="flex items-center space-x-3 space-x-reverse">
-                <i class="fa-solid fa-lock text-red-400 text-xl"></i>
-                <div>
-                    <h3 class="text-sm font-bold text-red-300">انتهت فترتك التجريبية (5 أيام)</h3>
-                    <p class="text-xs text-red-400/80">الصفقات مشفرة حالياً. يرجى تفعيل الاشتراك لعرض المستويات كاملة.</p>
-                </div>
-            </div>
-            <button onclick="openPaymentModal()" class="bg-red-600 hover:bg-red-500 text-white text-xs px-4 py-2 rounded-xl font-bold shadow transition-all">
-                اشتراك الآن
-            </button>
-        </div>
-
-        <!-- تبويبة الصفقات الفورية -->
         <section class="space-y-4">
-            <div class="flex justify-between items-center">
-                <h2 class="text-base font-bold text-white flex items-center">
-                    <i class="fa-solid fa-bolt text-yellow-400 ml-2"></i> صفقات الذكاء الاصطناعي الحية
-                </h2>
-                <span class="text-xs text-gray-400">تحديث مباشر</span>
-            </div>
-
-            <!-- قائمة الصفقات الحية -->
+            <h2 class="text-base font-bold text-white flex items-center">
+                <i class="fa-solid fa-bolt text-yellow-400 ml-2"></i> صفقات الذكاء الاصطناعي الحية
+            </h2>
             <div id="signals-container" class="space-y-4">
-                <div class="text-center py-10 text-gray-500">جاري جلب الصفقات النشطة...</div>
+                <div class="text-center py-10 text-gray-500">جاري جلب الصفقات...</div>
             </div>
         </section>
-
     </main>
 
-    <!-- نافذة تفاصيل الدفع والاشتراك -->
-    <div id="payment-modal" class="fixed inset-0 bg-darkBg/90 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-cardBg border border-gray-800 rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4">
-            <div class="flex justify-between items-center">
-                <h3 class="font-bold text-white text-base">تفعيل الاشتراك الشهري</h3>
-                <button onclick="closePaymentModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <p class="text-xs text-gray-300 leading-relaxed">للاشتراك وتفعيل الحساب بشكل كامل، يرجى تحويل قيمة الاشتراك إلى العنوان أدناه، ثم إرسال إيصال التحويل عبر الدعم الفني:</p>
-            <div class="bg-darkBg p-3 rounded-xl border border-gray-700 text-xs text-emerald-400 font-mono break-all">
-                USDT (TRC20): TYourWalletAddressHere123456
-            </div>
-            <a href="https://t.me/YourSupportChannel" target="_blank" class="block text-center w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-sm transition-all">
-                تواصل مع الدعم الفني لتأكيد التفعيل
-            </a>
-        </div>
-    </div>
-
     <script>
-        // الاتصال المعتمد مع سوبابيس
-        const SUPABASE_URL = 'https://gdsnaivwndtuqktzrbin.supabase.co';
+        const SUPABASE_URL = 'https://gdsnaivwmdbuqktzrbin.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdkc25haXZ3bWRidXFrdHpyYmluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxODI0NzAsImV4cCI6MjEwNzc1ODQ3MH0.cYsHuTE7XL8rR9M5PWIDPZhmE8Ntfvcnxdw5McR_f5w';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let currentUserEmail = localStorage.getItem('active_user_email');
-        let isSubscribed = localStorage.getItem('is_user_subscribed') === 'true';
 
-        // التحقق من صلاحية 5 أيام التجريبية
-        function checkTrialStatus() {
-            let signupDate = localStorage.getItem('signup_timestamp');
-            if (!signupDate) {
-                signupDate = new Date().getTime();
-                localStorage.setItem('signup_timestamp', signupDate);
-            }
-            const now = new Date().getTime();
-            const daysPassed = (now - signupDate) / (1000 * 60 * 60 * 24);
-            
-            // إذا مر أكثر من 5 أيام وليست مشتراة
-            if (daysPassed > 5 && !isSubscribed) {
-                document.getElementById('subscription-alert').classList.remove('hidden');
-                return false; // انتهت التجربة
-            }
-            return true; // نشطة
-        }
-
-        // تسجيل الدخول
         document.getElementById('login-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('user-email').value;
             localStorage.setItem('active_user_email', email);
             currentUserEmail = email;
-            
-            // تفعيل البصمة المائية ديناميكياً
             initWatermark(email);
             document.getElementById('auth-modal').classList.add('hidden');
-            checkTrialStatus();
             fetchSignals();
         });
 
         if (currentUserEmail) {
             document.getElementById('auth-modal').classList.add('hidden');
             initWatermark(currentUserEmail);
-            checkTrialStatus();
             fetchSignals();
         }
 
-        // توليد البصمة المائية المتكررة بريد المستخدم
         function initWatermark(email) {
             const wm = document.getElementById('dynamic-watermark');
             wm.innerHTML = '';
@@ -207,11 +106,8 @@
             }
         }
 
-        // جلب الصفقات من Supabase
         async function fetchSignals() {
             const container = document.getElementById('signals-container');
-            const trialActive = checkTrialStatus();
-
             const { data: signals, error } = await supabaseClient
                 .from('signals')
                 .select('*')
@@ -223,7 +119,7 @@
             }
 
             if (!signals || signals.length === 0) {
-                container.innerHTML = `<div class="text-center text-gray-500 py-10">لا توجد صفقات نشطة حالياً. انتظر إشارة الـ AI القادمة.</div>`;
+                container.innerHTML = `<div class="text-center text-gray-500 py-10">لا توجد صفقات نشطة حالياً.</div>`;
                 return;
             }
 
@@ -231,59 +127,32 @@
             signals.forEach(sig => {
                 const isLong = sig.type === 'LONG';
                 const badgeColor = isLong ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-red-950 text-red-400 border-red-800';
-                
-                // إذا انتهت التجربة وليست صفقة مجانية عامة، يتم تشفير الأرقام
-                let entryText = sig.entry;
-                let slText = sig.stop_loss;
-                let tpText = sig.take_profits;
-
-                if (!trialActive && !sig.is_free) {
-                    entryText = '🔒 (مخفي - يلزم اشتراك)';
-                    slText = '🔒 (مخفي)';
-                    tpText = '🔒🔒🔒';
-                }
 
                 const card = document.createElement('div');
-                card.className = "bg-cardBg border border-gray-800 rounded-2xl p-5 shadow-xl space-y-4 relative overflow-hidden";
+                card.className = "bg-cardBg border border-gray-800 rounded-2xl p-5 shadow-xl space-y-4";
                 card.innerHTML = `
                     <div class="flex justify-between items-center">
                         <div class="flex items-center space-x-2 space-x-reverse">
-                            <span class="font-bold text-lg text-white">${sig.pair}</span>
-                            <span class="text-xs px-2.5 py-1 rounded-lg border font-bold ${badgeColor}">${sig.type}</span>
+                            <span class="font-bold text-lg text-white">${sig.symbol || 'BTC/USDT'}</span>
+                            <span class="text-xs px-2.5 py-1 rounded-lg border font-bold ${badgeColor}">${sig.type || 'LONG'}</span>
                         </div>
-                        ${sig.is_free ? '<span class="text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 px-2.5 py-1 rounded-full font-bold">⭐ صفقة مجانية ترويجية</span>' : ''}
+                        <span class="text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 px-2.5 py-1 rounded-full font-bold">⭐ صفقة حية</span>
                     </div>
-                    <div class="grid grid-cols-3 gap-2 text-center bg-darkBg/60 p-3 rounded-xl border border-gray-800/80">
+                    <div class="grid grid-cols-2 gap-2 text-center bg-darkBg/60 p-3 rounded-xl border border-gray-800">
                         <div>
                             <span class="block text-[10px] text-gray-400">سعر الدخول</span>
-                            <span class="text-xs font-bold text-white font-mono">${entryText}</span>
+                            <span class="text-xs font-bold text-white font-mono">${sig.entry_price}</span>
                         </div>
                         <div>
-                            <span class="block text-[10px] text-gray-400">وقف الخسارة</span>
-                            <span class="text-xs font-bold text-red-400 font-mono">${slText}</span>
-                        </div>
-                        <div>
-                            <span class="block text-[10px] text-gray-400">الأهداف (TP)</span>
-                            <span class="text-xs font-bold text-emerald-400 font-mono">${tpText}</span>
+                            <span class="block text-[10px] text-gray-400">أهداف الأرباح (TP)</span>
+                            <span class="text-xs font-bold text-emerald-400 font-mono">${sig.take_profit}</span>
                         </div>
                     </div>
                 `;
                 container.appendChild(card);
             });
         }
-
-        function openPaymentModal() { document.getElementById('payment-modal').classList.remove('hidden'); }
-        function closePaymentModal() { document.getElementById('payment-modal').classList.add('hidden'); }
-
-        // حماية متقدمة ضد الضغط على أزرار التصوير أو القوائم المحظورة
-        document.addEventListener('contextmenu', e => e.preventDefault());
-        document.addEventListener('keydown', e => {
-            if (e.key === 'PrintScreen' || (e.ctrlKey && e.key === 'p')) {
-                e.preventDefault();
-                alert('عذراً، تصوير الشاشة محظور لحماية الملكية الفكرية والصفقات.');
-            }
-        });
     </script>
 </body>
-  </html>
-                      
+    </html>
+    
