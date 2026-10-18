@@ -1,242 +1,213 @@
-package com.cryptobalhoosi.app
-
-import android.os.Bundle
-import android.view.WindowManager
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.*
-import kotlinx.coroutines.delay
-import java.time.*
-import java.time.format.DateTimeFormatter
-import kotlin.math.cos
-import kotlin.math.sin
-
-// ───────────── إعدادات وسيرفر Supabase ─────────────
-const val SUPABASE_URL = "https://gdsnaivwmdbuqktzrbin.supabase.co"
-const val SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdkc25haXZ3bWRidXFrdHpyYmluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxODI0NzAsImV4cCI6MjEwNzc1ODQ3MH0.cYsHuTE7XL8rR9M5PWIDPZhmE8Ntfvcnxdw5McR_f5w"
-
-// ───────────── الألوان والثيم ─────────────
-object BColors {
-    val Bg = Color(0xFF0B0F1A); val Surface = Color(0xFF121826); val SurfaceHi = Color(0xFF1A2236)
-    val Primary = Color(0xFF00E5FF); val Accent = Color(0xFF7C4DFF)
-    val Long = Color(0xFF16C784); val Short = Color(0xFFEA3943); val Gold = Color(0xFFFFC107)
-    val TextHi = Color(0xFFEAF0FF); val TextLow = Color(0xFF8A94A8)
-}
-
-@Composable
-fun BalhoosiTheme(content: @Composable () -> Unit) = MaterialTheme(
-    colorScheme = darkColorScheme(
-        primary = BColors.Primary, secondary = BColors.Accent, background = BColors.Bg,
-        surface = BColors.Surface, onPrimary = Color.Black,
-        onBackground = BColors.TextHi, onSurface = BColors.TextHi, error = BColors.Short
-    ), content = content
-)
-
-// ───────────── الشعار ─────────────
-@Composable
-fun BalhoosiLogo(size: Dp = 96.dp, modifier: Modifier = Modifier) {
-    Canvas(modifier.size(size)) {
-        val c = center; val r = this.size.minDimension / 2.1f
-        val brush = Brush.linearGradient(listOf(BColors.Primary, BColors.Accent))
-        val hex = Path().apply {
-            for (i in 0..5) {
-                val a = Math.toRadians(60.0 * i - 90)
-                val x = c.x + r * cos(a).toFloat(); val y = c.y + r * sin(a).toFloat()
-                if (i == 0) moveTo(x, y) else lineTo(x, y)
-            }
-            close()
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم المدير - Crypto Balhoosi</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-color: #0B0F1A;
+            --surface-color: #121826;
+            --primary-color: #00E5FF;
+            --accent-color: #7C4DFF;
+            --long-color: #16C784;
+            --short-color: #EA3943;
+            --gold-color: #FFC107;
+            --text-low: #8A94A8;
+            --text-high: #FFFFFF;
         }
-        drawPath(hex, brush, style = Stroke(width = r * 0.09f, join = StrokeJoin.Round))
-        val w = r * 0.28f
-        drawLine(brush, Offset(c.x, c.y - r * 0.55f), Offset(c.x, c.y + r * 0.55f), r * 0.05f)
-        drawRoundRect(BColors.Long, Offset(c.x - w / 2, c.y - r * 0.28f), Size(w, r * 0.5f), CornerRadius(w * 0.2f))
-        listOf(Offset(c.x - r * 0.5f, c.y - r * 0.1f), Offset(c.x + r * 0.5f, c.y - r * 0.3f), Offset(c.x + r * 0.45f, c.y + r * 0.35f))
-            .forEach {
-                drawLine(BColors.Primary.copy(alpha = .6f), c, it, r * 0.025f)
-                drawCircle(BColors.Primary, r * 0.07f, it)
-            }
-    }
-}
 
-// ───────────── نموذج الصفقة (الخادم يرسل null عند القفل) ─────────────
-data class Trade(
-    val id: String, val symbol: String, val exchange: String, val isLong: Boolean, val strength: Int,
-    val entry: Double?, val stopLoss: Double?, val targets: List<Double>?, val reason: String?,
-    val locked: Boolean, val isFree: Boolean
-)
-
-// ───────────── بطاقة الصفقة ─────────────
-@Composable
-fun TradeCard(t: Trade, onSubscribe: () -> Unit, onOpen: () -> Unit) {
-    val side = if (t.isLong) BColors.Long else BColors.Short
-    Card(
-        onClick = onOpen, shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = BColors.Surface),
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)
-    ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(t.symbol, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.width(8.dp))
-                Icon(if (t.isLong) Icons.Rounded.TrendingUp else Icons.Rounded.TrendingDown, null, tint = side)
-                Text(if (t.isLong) "LONG" else "SHORT", color = side, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.weight(1f))
-                if (t.isFree) Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.CardGiftcard, null, tint = BColors.Gold)
-                    Spacer(Modifier.width(4.dp)); Text("مجاني", color = BColors.Gold)
-                }
-            }
-            Row { repeat(5) {
-                Icon(Icons.Rounded.Star, null, Modifier.size(16.dp), tint = if (it < t.strength) BColors.Gold else BColors.TextLow)
-            } }
-            if (t.locked) LockedBlock(onSubscribe) else {
-                LevelRow("الدخول", t.entry, BColors.Primary)
-                LevelRow("وقف الخسارة", t.stopLoss, BColors.Short)
-                t.targets?.forEachIndexed { i, v -> LevelRow("الهدف ${i + 1}", v, BColors.Long) }
-                t.reason?.let { Text(it, color = BColors.TextLow, style = MaterialTheme.typography.bodySmall) }
-            }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-high);
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
         }
-    }
-}
 
-@Composable
-private fun LevelRow(label: String, v: Double?, c: Color) = Row(Modifier.fillMaxWidth()) {
-    Text(label, color = BColors.TextLow); Spacer(Modifier.weight(1f))
-    Text(v?.toString() ?: "—", color = c, fontWeight = FontWeight.SemiBold)
-}
-
-@Composable
-private fun LockedBlock(onSubscribe: () -> Unit) = Column(
-    Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(BColors.SurfaceHi).padding(16.dp),
-    horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)
-) {
-    Icon(Icons.Rounded.Lock, null, Modifier.size(32.dp), tint = BColors.Gold)
-    Text("••••••   ••••••   ••••••", color = BColors.TextLow)
-    Text("انتهت الفترة التجريبية، اشترك لفتح الصفقة")
-    Button(onClick = onSubscribe) { Text("اشترك الآن") }
-}
-
-// ───────────── الحماية: منع التصوير + بصمة مائية ─────────────
-@Composable
-fun DynamicWatermark(email: String) {
-    val cfg = LocalConfiguration.current
-    val t = rememberInfiniteTransition(label = "wm")
-    val dx by t.animateFloat(-60f, 60f, infiniteRepeatable(tween(9000, easing = LinearEasing), RepeatMode.Reverse), label = "x")
-    val dy by t.animateFloat(-40f, 40f, infiniteRepeatable(tween(7000, easing = LinearEasing), RepeatMode.Reverse), label = "y")
-    Box(Modifier.fillMaxSize()) {
-        for (row in 0..(cfg.screenHeightDp / 140)) {
-            Text(
-                "$email    $email", color = Color.White, fontSize = 13.sp, softWrap = false,
-                modifier = Modifier.offset((dx - 40).dp, (row * 140 + dy).dp).rotate(-25f).alpha(0.10f)
-            )
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: var(--surface-color);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
-    }
-}
 
-// ───────────── البورصات العالمية ─────────────
-data class Exchange(val name: String, val zone: String, val open: LocalTime, val close: LocalTime) {
-    fun isOpen(now: Instant): Boolean {
-        val z = now.atZone(ZoneId.of(zone))
-        if (z.dayOfWeek == DayOfWeek.SATURDAY || z.dayOfWeek == DayOfWeek.SUNDAY) return false
-        return z.toLocalTime() in open..close
-    }
-    fun local(h: LocalTime): String =
-        ZonedDateTime.of(LocalDate.now(ZoneId.of(zone)), h, ZoneId.of(zone))
-            .withZoneSameInstant(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("HH:mm"))
-}
-
-val Exchanges = listOf(
-    Exchange("New York (NYSE)", "America/New_York", LocalTime.of(9, 30), LocalTime.of(16, 0)),
-    Exchange("London (LSE)", "Europe/London", LocalTime.of(8, 0), LocalTime.of(16, 30)),
-    Exchange("Frankfurt", "Europe/Berlin", LocalTime.of(9, 0), LocalTime.of(17, 30)),
-    Exchange("Dubai (DFM)", "Asia/Dubai", LocalTime.of(10, 0), LocalTime.of(15, 0)),
-    Exchange("Tokyo (TSE)", "Asia/Tokyo", LocalTime.of(9, 0), LocalTime.of(15, 0)),
-)
-
-@Composable
-fun ExchangeClockScreen() {
-    var now by remember { mutableStateOf(Instant.now()) }
-    LaunchedEffect(Unit) { while (true) { now = Instant.now(); delay(1000) } }
-    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        Text("البورصات العالمية", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        Exchanges.forEach { ex ->
-            val open = ex.isOpen(now)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(10.dp).background(if (open) BColors.Long else BColors.Short, CircleShape))
-                Spacer(Modifier.width(10.dp)); Text(ex.name)
-                Spacer(Modifier.weight(1f))
-                Text("${ex.local(ex.open)} - ${ex.local(ex.close)}", color = BColors.TextLow)
-            }
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 8px;
+            margin-bottom: 20px;
         }
-    }
-}
 
-// ───────────── الشاشات والتنقل ─────────────
-@Composable
-fun TradesScreen(trades: List<Trade>) = LazyColumn(Modifier.fillMaxSize()) {
-    item { Box(Modifier.fillMaxWidth().padding(20.dp), Alignment.Center) { BalhoosiLogo() } }
-    items(trades, key = { it.id }) { TradeCard(it, onSubscribe = { /* TODO: شاشة الاشتراك */ }, onOpen = { /* TODO: تفاصيل + شارت */ }) }
-}
-
-@Composable
-fun UserApp(email: String) {
-    var tab by remember { mutableIntStateOf(0) }
-    val demo = remember {
-        listOf(
-            Trade("1", "BTCUSDT", "Binance", true, 4, 64200.0, 63100.0, listOf(65000.0, 66200.0, 67500.0), "كسر مقاومة وتأكيد فيبوناتشي 0.618", false, false),
-            Trade("2", "SOLUSDT", "Binance", false, 5, null, null, null, null, true, false),
-            Trade("3", "ETHUSDT", "Binance", true, 3, 3150.0, 3080.0, listOf(3220.0, 3300.0, 3400.0), "ارتداد من دعم قوي", false, true),
-        )
-    }
-    Scaffold(
-        containerColor = BColors.Bg,
-        bottomBar = {
-            NavigationBar(containerColor = BColors.Surface) {
-                NavigationBarItem(tab == 0, { tab = 0 }, { Icon(Icons.Rounded.ShowChart, null) }, label = { Text("الصفقات") })
-                NavigationBarItem(tab == 1, { tab = 1 }, { Icon(Icons.Rounded.Public, null) }, label = { Text("البورصات") })
-                NavigationBarItem(tab == 2, { tab = 2 }, { Icon(Icons.Rounded.Person, null) }, label = { Text("حسابي") })
-            }
+        .section {
+            margin-bottom: 25px;
         }
-    ) { pad ->
-        Box(Modifier.padding(pad).fillMaxSize()) {
-            when (tab) {
-                0 -> TradesScreen(demo)
-                1 -> ExchangeClockScreen()
-                else -> Column(Modifier.padding(20.dp)) { Text(email); Text("سجل الصفقات ونسبة النجاح: قيد البناء", color = BColors.TextLow) }
-            }
-            DynamicWatermark(email)
-        }
-    }
-}
 
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
-        setContent { BalhoosiTheme { UserApp(email = "user@email.com") } }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-low);
+            font-size: 14px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 12px;
+            background: #1A2234;
+            border: 1px solid #2A364F;
+            border-radius: 8px;
+            color: #FFF;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            border: none;
+            border-radius: 8px;
+            color: #000;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .status-msg {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            display: none;
+            text-align: center;
+        }
+
+        .success { background: rgba(22, 199, 132, 0.2); color: var(--long-color); }
+        .error { background: rgba(234, 57, 67, 0.2); color: var(--short-color); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>لوحة تحكم المدير</h2>
+
+    <!-- أسعار الاشتراكات -->
+    <div class="section">
+        <h3>أسعار الاشتراكات</h3>
+        <label>السعر الشهري ($)</label>
+        <input type="number" id="monthlyPrice" placeholder="مثال: 50">
+        
+        <label>السعر ربع السنوي ($)</label>
+        <input type="number" id="quarterlyPrice" placeholder="مثال: 120">
+        
+        <label>السعر السنوي ($)</label>
+        <input type="number" id="yearlyPrice" placeholder="مثال: 400">
+        
+        <button onclick="savePrices()">حفظ الأسعار</button>
+    </div>
+
+    <hr style="border-color: #2A364F; margin: 20px 0;">
+
+    <!-- إرسال صفقة مجانية -->
+    <div class="section">
+        <h3 style="color: var(--gold-color);">إرسال صفقة مجانية للجميع 🎁</h3>
+        
+        <label>العملة</label>
+        <input type="text" id="symbol" placeholder="BTCUSDT">
+
+        <label>الاتجاه</label>
+        <select id="tradeType">
+            <option value="LONG">LONG (شراء)</option>
+            <option value="SHORT">SHORT (بيع)</option>
+        </select>
+
+        <label>سعر الدخول</label>
+        <input type="number" step="any" id="entryPrice" placeholder="65000">
+
+        <label>وقف الخسارة (Stop Loss)</label>
+        <input type="number" step="any" id="stopLoss" placeholder="63000">
+
+        <label>الأهداف (مفصولة بفاصلة)</label>
+        <input type="text" id="targets" placeholder="67000, 69000, 72000">
+
+        <label>سبب الدخول / ملاحظات</label>
+        <textarea id="reason" rows="2" placeholder="اختراقات واستمرار الاتجاه..."></textarea>
+
+        <button onclick="sendFreeTrade()">إرسال الصفقة الآن</button>
+    </div>
+
+    <div id="statusMsg" class="status-msg"></div>
+</div>
+
+<script>
+    const SUPABASE_URL = "https://gdsnaivwmdbuqktzrbin.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdkc25haXZ3bWRidXFrdHpyYmluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxODI0NzAsImV4cCI6MjEwNzc1ODQ3MH0.cYsHuTE7XL8rR9M5PWIDPZhmE8Ntfvcnxdw5McR_f5w";
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    function showStatus(msg, isSuccess = true) {
+        const el = document.getElementById('statusMsg');
+        el.innerText = msg;
+        el.className = 'status-msg ' + (isSuccess ? 'success' : 'error');
+        el.style.display = 'block';
+        setTimeout(() => { el.style.display = 'none'; }, 4000);
     }
-}
+
+    async function savePrices() {
+        const m = document.getElementById('monthlyPrice').value;
+        const q = document.getElementById('quarterlyPrice').value;
+        const y = document.getElementById('yearlyPrice').value;
+
+        if(!m || !q || !y) {
+            showStatus("يرجى إدخال جميع الأسعار", false);
+            return;
+        }
+
+        const { error } = await _supabase.from('settings').upsert({ id: 'prices', monthly: m, quarterly: q, yearly: y });
+        if(error) showStatus("حدث خطأ في الحفظ: " + error.message, false);
+        else showStatus("تم حفظ الأسعار بنجاح!");
+    }
+
+    async function sendFreeTrade() {
+        const symbol = document.getElementById('symbol').value.toUpperCase();
+        const type = document.getElementById('tradeType').value;
+        const entry = parseFloat(document.getElementById('entryPrice').value);
+        const sl = parseFloat(document.getElementById('stopLoss').value);
+        const targets = document.getElementById('targets').value.split(',').map(t => parseFloat(t.trim()));
+        const reason = document.getElementById('reason').value;
+
+        if(!symbol || isNaN(entry) || isNaN(sl) || targets.length < 1) {
+            showStatus("يرجى تعبئة كافة الحقول والأهداف بشكل صحيح", false);
+            return;
+        }
+
+        const { error } = await _supabase.from('trades').insert([{
+            symbol: symbol,
+            is_long: type === 'LONG',
+            entry: entry,
+            stop_loss: sl,
+            targets: targets,
+            reason: reason,
+            is_free: true
+        }]);
+
+        if(error) showStatus("حدث خطأ أثناء الإرسال: " + error.message, false);
+        else showStatus("تم إرسال الصفقة بنجاح لجميع المستخدمين!");
+    }
+</script>
+
+</body>
+</html>
