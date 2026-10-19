@@ -53,7 +53,7 @@ jobs:
 
       # 3. رفع الملفين معاً للتحميل
       - name: Upload APKs Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: all-flutter-apks
           path: |
