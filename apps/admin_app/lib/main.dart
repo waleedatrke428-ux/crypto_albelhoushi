@@ -1564,7 +1564,7 @@ class _StartupError extends StatelessWidget {
               children: [
                 const BrandMark(size: 64),
                 const SizedBox(height: 16),
-                Text(english ? 'Supabase is not configured.' : 'إعدادات Supabase غير متوفرة.',
+                Text(english ? 'The app could not start.' : 'تعذر بدء التطبيق.',
                     textAlign: TextAlign.center),
                 const SizedBox(height: 10),
                 Text(error.toString(), textAlign: TextAlign.center,

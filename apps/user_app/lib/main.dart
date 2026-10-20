@@ -1399,8 +1399,8 @@ class _StartupError extends StatelessWidget {
                 const SizedBox(height: 16),
                 Text(
                   english
-                      ? 'Supabase is not configured for this build.'
-                      : 'إعدادات Supabase غير متوفرة في هذه النسخة.',
+                      ? 'The app could not start.'
+                      : 'تعذر بدء التطبيق.',
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 10),
