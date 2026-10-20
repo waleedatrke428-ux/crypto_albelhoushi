@@ -11,6 +11,7 @@ class AppSupabase {
         'Build with --dart-define=SUPABASE_URL=... and --dart-define=SUPABASE_ANON_KEY=...',
       );
     }
+    
     await Supabase.initialize(url: url, anonKey: anonKey);
   }
 
