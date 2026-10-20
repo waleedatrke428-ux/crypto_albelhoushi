@@ -6,14 +6,10 @@ class AppSupabase {
   static Future<void> initialize() async {
     final url = const String.fromEnvironment('SUPABASE_URL', defaultValue: 'https://gdsnaivwmdbuqktzrbin.supabase.co');
     final anonKey = const String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'sb_publishable_VbgMS_Y_oNs8rbMhVs1Tpg_9GJbP-gl');
-    if (url.isEmpty || anonKey.isEmpty) {
-      throw StateError(
-        'Build with --dart-define=SUPABASE_URL=... and --dart-define=SUPABASE_ANON_KEY=...',
-      );
-    }
-    
+
     await Supabase.initialize(url: url, anonKey: anonKey);
   }
+  
 
   static Future<AuthResponse> signIn({
     required String email,
