@@ -43,7 +43,29 @@ jobs:
           if [ "${{ matrix.app }}" = "user_app" ]; then
             cp apps/user_app/android/MainActivity.kt _build/user_app/android/app/src/main/kotlin/com/albelhoushi/crypto_user/MainActivity.kt
           fi
-          sed -i '/android {/a \    compileSdkVersion 34' _build/${{ matrix.app }}/android/app/build.gradle
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('_build/${{ matrix.app }}/android/app/build.gradle')
+          if not p.exists():
+              raise FileNotFoundError(f'Missing Android app build.gradle: {p}')
+          text = p.read_text(encoding='utf-8')
+          compile_sdk = re.compile(r'(?m)^([ \t]*)compileSdk(?:Version)?\s*(?:=\s*)?.*$')
+          matches = list(compile_sdk.finditer(text))
+          if len(matches) > 1:
+              raise RuntimeError('Multiple compileSdk declarations found in generated app build.gradle')
+          if matches:
+              text = compile_sdk.sub(r'\g<1>compileSdkVersion 34', text, count=1)
+          else:
+              android_block = re.search(r'(?m)^([ \t]*)android\s*\{\s*$', text)
+              if not android_block:
+                  raise RuntimeError('android block not found in generated app build.gradle')
+              insert_at = android_block.end()
+              indent = android_block.group(1) + '    '
+              text = text[:insert_at] + f'\n{indent}compileSdkVersion 34' + text[insert_at:]
+          p.write_text(text, encoding='utf-8')
+          PY
       - name: Build release APK
         working-directory: _build/${{ matrix.app }}
         env:
