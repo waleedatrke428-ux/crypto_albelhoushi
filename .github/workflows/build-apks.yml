@@ -35,7 +35,7 @@ jobs:
           mkdir -p _build
           flutter create --platforms=android --org com.albelhoushi --project-name ${{ matrix.project }} _build/${{ matrix.app }}
 
-      - name: Install app source
+     - name: Install app source
         run: |
           cp apps/${{ matrix.app }}/pubspec.yaml _build/${{ matrix.app }}/pubspec.yaml
           cp -R apps/${{ matrix.app }}/lib/. _build/${{ matrix.app }}/lib/
@@ -43,10 +43,7 @@ jobs:
           if [ "${{ matrix.app }}" = "user_app" ]; then
             cp apps/user_app/android/MainActivity.kt _build/user_app/android/app/src/main/kotlin/com/albelhoushi/crypto_user/MainActivity.kt
           fi
-          echo "" >> _build/${{ matrix.app }}/android/app/build.gradle
-          echo "android {" >> _build/${{ matrix.app }}/android/app/build.gradle
-          echo "    compileSdkVersion 34" >> _build/${{ matrix.app }}/android/app/build.gradle
-          echo "}" >> _build/${{ matrix.app }}/android/app/build.gradle
+          sed -i '/defaultConfig {/a \        compileSdkVersion 34' _build/${{ matrix.app }}/android/app/build.gradle
 
       - name: Build release APK
         working-directory: _build/${{ matrix.app }}
