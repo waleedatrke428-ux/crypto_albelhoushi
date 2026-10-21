@@ -12,8 +12,8 @@ dependencies:
   supabase_flutter: ^2.5.2
   provider: ^6.1.2
   shared_preferences: ^2.3.2
-  # 2.5.0+ crashes Android release builds because R8 strips JNI types.
-  shared_preferences_android: '>=2.3.4 <2.5.0'
+  # 2.4.7 uses Kotlin 2.1.10, which is incompatible with the Flutter 3.24 template.
+  shared_preferences_android: 2.4.0
 
 dev_dependencies:
   flutter_test:
