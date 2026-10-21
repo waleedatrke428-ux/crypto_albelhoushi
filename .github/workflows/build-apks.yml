@@ -43,9 +43,7 @@ jobs:
           if [ "${{ matrix.app }}" = "user_app" ]; then
             cp apps/user_app/android/MainActivity.kt _build/user_app/android/app/src/main/kotlin/com/albelhoushi/crypto_user/MainActivity.kt
           fi
-          # إضافة هذا السطر لحل مشكلة الـ compileSdkVersion تلقائياً:
           echo "android { compileSdkVersion 34 }" >> _build/${{ matrix.app }}/android/app/build.gradle
-
       - name: Build release APK
         working-directory: _build/${{ matrix.app }}
         env:
