@@ -55,11 +55,10 @@ jobs:
             echo "Configure SUPABASE_URL and SUPABASE_ANON_KEY as GitHub Actions secrets."
             exit 1
           fi
-          flutter pub get
-          flutter build apk --release \
+         flutter pub get
+          flutter build apk --release -t lib/main.dart \
             --dart-define=SUPABASE_URL="$SUPABASE_URL" \
             --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
-
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
