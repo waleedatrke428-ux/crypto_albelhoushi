@@ -1,35 +1,34 @@
 name: Build Android APKs
 
 on:
-  workflow_dispatch:
   push:
-    branches: [main, master]
-
-permissions:
-  contents: read
+    branches: [ "main", "master" ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
         include:
           - app: user_app
             project: crypto_user
-            label: Crypto Albelhoushi
             artifact: crypto-user-apk
+            label: "العملات المشفرة، كريبتو ألبلهوشي، ملف APK لمستخدم العملات المشفرة"
           - app: admin_app
             project: crypto_admin
-            label: Crypto Albelhoushi Admin
             artifact: crypto-admin-apk
+            label: "Crypto Albelhoushi Admin, crypto-admin-apk"
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v2
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: '3.19.x'
+          cache: true
 
       - name: Generate Android project
         run: |
@@ -55,11 +54,13 @@ jobs:
             echo "Configure SUPABASE_URL and SUPABASE_ANON_KEY as GitHub Actions secrets."
             exit 1
           fi
-         flutter pub get
+          flutter pub get
           flutter build apk --release -t lib/main.dart \
             --dart-define=SUPABASE_URL="$SUPABASE_URL" \
             --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
-      - uses: actions/upload-artifact@v4
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
           path: _build/${{ matrix.app }}/build/app/outputs/flutter-apk/app-release.apk
