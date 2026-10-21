@@ -1,0 +1,67 @@
+name: Build Android APKs
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: user_app
+            project: crypto_user
+            label: Crypto Albelhoushi
+            artifact: crypto-user-apk
+          - app: admin_app
+            project: crypto_admin
+            label: Crypto Albelhoushi Admin
+            artifact: crypto-admin-apk
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Generate Android project
+        run: |
+          mkdir -p _build
+          flutter create --platforms=android --org com.albelhoushi --project-name ${{ matrix.project }} _build/${{ matrix.app }}
+
+      - name: Install app source
+        run: |
+          cp apps/${{ matrix.app }}/pubspec.yaml _build/${{ matrix.app }}/pubspec.yaml
+          cp -R apps/${{ matrix.app }}/lib/. _build/${{ matrix.app }}/lib/
+          sed -i 's/android:label="[^"]*"/android:label="${{ matrix.label }}"/' _build/${{ matrix.app }}/android/app/src/main/AndroidManifest.xml
+          if [ "${{ matrix.app }}" = "user_app" ]; then
+            cp apps/user_app/android/MainActivity.kt _build/user_app/android/app/src/main/kotlin/com/albelhoushi/crypto_user/MainActivity.kt
+          fi
+
+      - name: Build release APK
+        working-directory: _build/${{ matrix.app }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "Configure SUPABASE_URL and SUPABASE_ANON_KEY as GitHub Actions secrets."
+            exit 1
+          fi
+          flutter pub get
+          flutter build apk --release \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: _build/${{ matrix.app }}/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
