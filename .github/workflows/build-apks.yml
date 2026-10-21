@@ -65,6 +65,18 @@ jobs:
               indent = android_block.group(1) + '    '
               text = text[:insert_at] + f'\n{indent}compileSdkVersion 34' + text[insert_at:]
           p.write_text(text, encoding='utf-8')
+
+          settings = p.parents[1] / 'settings.gradle'
+          if not settings.exists():
+              raise FileNotFoundError(f'Missing Android settings.gradle: {settings}')
+          settings_text = settings.read_text(encoding='utf-8')
+          kotlin_plugin = re.compile(r"""(\bid\s+["']org\.jetbrains\.kotlin\.android["']\s+version\s+["'])[^"']+(["'])""")
+          settings_text, replacements = kotlin_plugin.subn(
+              r'\g<1>1.9.24\g<2>', settings_text, count=1
+          )
+          if replacements != 1:
+              raise RuntimeError('Kotlin Android Gradle plugin declaration not found')
+          settings.write_text(settings_text, encoding='utf-8')
           PY
       - name: Build release APK
         working-directory: _build/${{ matrix.app }}
