@@ -19,10 +19,11 @@
 
 ## إعداد بناء APK على GitHub
 
-في إعدادات المستودع، أضف GitHub Actions repository secrets:
+في إعدادات المستودع، أضف GitHub Actions repository secret:
 
-- `SUPABASE_URL`: عنوان مشروع Supabase.
 - `SUPABASE_ANON_KEY`: مفتاح `anon/public` الخاص بالمشروع.
+
+عنوان الـ Cloudflare Worker مضبوط مباشرة في التطبيقين لتجنب اختلافه بين البناءات؛ لا تضف `SUPABASE_URL` كـ secret.
 
 بعد رفع التغييرات:
 
@@ -30,7 +31,7 @@
 2. شغّل **Build Android APKs** يدويًا أو ادفع تغييرًا إلى `main` أو `master`.
 3. نزّل `crypto-user-apk` و`crypto-admin-apk` من Artifacts لتشغيل الـ workflow.
 
-ينشئ GitHub ملفات Android ويبني APK لكل تطبيق، ولا يلزم تثبيت Flutter أو Java محليًا لهذا المسار. أسرار البناء تُمرر إلى `dart-define`؛ تذكّر أن مفاتيح `anon/public` ليست سرًا أمنيًا داخل APK. يعتمد أمان البيانات على سياسات RLS ودوال الخادم.
+ينشئ GitHub ملفات Android ويبني APK لكل تطبيق، ولا يلزم تثبيت Flutter أو Java محليًا لهذا المسار. يُمرر مفتاح `anon/public` عبر `dart-define`؛ تذكّر أنه ليس سرًا أمنيًا داخل APK. يعتمد أمان البيانات على سياسات RLS ودوال الخادم.
 
 ## حدود الميزات الحالية
 

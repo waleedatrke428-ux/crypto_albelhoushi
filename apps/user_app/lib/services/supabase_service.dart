@@ -4,10 +4,7 @@ class AppSupabase {
   static SupabaseClient get client => Supabase.instance.client;
 
  static Future<void> initialize() async {
-    final url = const String.fromEnvironment(
-      'SUPABASE_URL',
-      defaultValue: 'https://nameless-brook-137e.waleedatrke428.workers.dev',
-    );
+    const url = 'https://nameless-brook-137e.waleedaltrke428.workers.dev';
     final anonKey = const String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'sb_publishable_VbgMS_Y_oNs8rbMhVs1Tpg_9GJbP-gl');
 
     await Supabase.initialize(url: url, anonKey: anonKey);
