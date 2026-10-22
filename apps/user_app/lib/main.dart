@@ -15,6 +15,11 @@ const _gold = Color(0xFFF3BD5B);
 
 String _requestErrorMessage(Object error, {required bool english}) {
   final details = error.toString().toLowerCase();
+  if (details.contains('timeoutexception') || details.contains('timed out')) {
+    return english
+        ? 'The server did not respond in time. Check your connection and try again.'
+        : 'لم يستجب الخادم في الوقت المحدد. تحقق من اتصالك ثم أعد المحاولة.';
+  }
   if (details.contains('failed host lookup') ||
       details.contains('no address associated with hostname') ||
       details.contains('socketexception')) {

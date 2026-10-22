@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   supabase_flutter: ^2.5.2
+  http: ^1.2.2
   provider: ^6.1.2
   shared_preferences: ^2.3.2
   # 2.4.7 uses Kotlin 2.1.10, which is incompatible with the Flutter 3.24 template.

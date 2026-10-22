@@ -1,5 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'worker_http_client.dart';
+
 class AdminSupabase {
   static SupabaseClient get client => Supabase.instance.client;
 
@@ -7,7 +9,11 @@ class AdminSupabase {
     const url = 'https://nameless-brook-137e.waleedaltrke428.workers.dev';
     final anonKey = const String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'sb_publishable_VbgMS_Y_oNs8rbMhVs1Tpg_9GJbP-gl');
 
-    await Supabase.initialize(url: url, anonKey: anonKey);
+    await Supabase.initialize(
+      url: url,
+      anonKey: anonKey,
+      httpClient: WorkerHttpClient(),
+    );
   }
 
   static Future<AuthResponse> signIn({
