@@ -103,7 +103,6 @@ class WorkerHttpClient extends http.BaseClient {
 
     throw SocketException(
       'System DNS and DNS-over-HTTPS failed for ${uri.host}: $lastError',
-      address: uri.host,
     );
   }
 
